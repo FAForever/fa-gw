@@ -1,40 +1,8 @@
+OtherArmyResultStrings.recall = '<LOC usersync_0005>%s has fled the battle.'
+OtherArmyResultStrings.autorecall = '<LOC usersync_0006>%s was recalled by his HQ.'
 
---*****************************************************************************
---* File: lua/modules/ui/game/gameresult.lua
---* Summary: Victory and Defeat behavior
---*
---* Copyright © 2006 Gas Powered Games, Inc.  All rights reserved.
---*****************************************************************************
-
-local UIUtil = import('/lua/ui/uiutil.lua')
-local LayoutHelpers = import('/lua/maui/layouthelpers.lua')
-local Group = import('/lua/maui/group.lua').Group
-local Bitmap = import('/lua/maui/bitmap.lua').Bitmap
-
-local OtherArmyResultStrings = {
-    victory = '<LOC usersync_0001>%s wins!',
-    defeat = '<LOC usersync_0002>%s has been defeated!',
-    draw = '<LOC usersync_0003>%s receives a draw.',
-    gameOver = '<LOC usersync_0004>Game Over.',
-    recall = '<LOC usersync_0005>%s has fled the battle.',
-    autorecall = '<LOC usersync_0006>%s was recalled by his HQ.',
-}
-
-local MyArmyResultStrings = {
-    victory = "<LOC GAMERESULT_0000>Victory!",
-    defeat = "<LOC GAMERESULT_0001>You have been defeated!",
-    draw = "<LOC GAMERESULT_0002>It's a draw.",
-    replay = "<LOC GAMERESULT_0003>Replay Finished.",
-    recall = "<LOC GAMERESULT_0004>You have left the battle!",
-    autorecall = "<LOC GAMERESULT_0005>You have been recalled by your HQ!",
-}
-
-function OnReplayEnd()
-    import('/lua/ui/game/tabs.lua').TabAnnouncement('main', LOC(MyArmyResultStrings.replay))
-    import('/lua/ui/game/tabs.lua').AddModeText("<LOC _Score>", function() import('/lua/ui/dialogs/score.lua').CreateDialog(true) end)
-end
-
-local announced = {}
+MyArmyResultStrings.recall = "<LOC GAMERESULT_0004>You have left the battle!"
+MyArmyResultStrings.autorecall = "<LOC GAMERESULT_0005>You have been recalled by your HQ!"
 
 function DoGameResult(armyIndex, result)
 
