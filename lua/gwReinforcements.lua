@@ -322,13 +322,13 @@ function Deploy(data)
     local focusArmy = GetFocusArmy()
 
     if table.getn(units) == 0 and focusArmy == data.From then     
-        PrintText('No beacon found for deployment!', 20, nil, 15, 'center')
+        PrintText(LOC('<LOC reinforcements0001>No beacon found for deployment!'), 20, nil, 15, 'center')
     end
 
     for _, unit in units do
         if unit.UnitBeingBuilt or unit:GetFractionComplete() ~= 1 then
             if focusArmy == data.From then
-                PrintText('The beacon is not complete!', 20, nil, 15, 'center')
+                PrintText(LOC('<LOC reinforcements0002>The beacon is not complete!'), 20, nil, 15, 'center')
             end
         else
             unit:Deploy(data.Index)
