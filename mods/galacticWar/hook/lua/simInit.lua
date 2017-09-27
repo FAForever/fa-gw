@@ -13,11 +13,11 @@ function BeginSession()
     local ScenarioFramework = import('/lua/ScenarioFramework.lua')
     for _, army in ScenarioInfo.ArmySetup do
         if army.Faction == 1 then
-            ScenarioFramework.SetUEFColor(army.ArmyIndex)
+            ScenarioFramework.SetUEFPlayerColor(army.ArmyIndex)
         elseif army.Faction == 2 then
-            ScenarioFramework.SetAeonColor(army.ArmyIndex)
+            ScenarioFramework.SetAeonPlayerColor(army.ArmyIndex)
         elseif army.Faction == 3 then
-            ScenarioFramework.SetCybranColor(army.ArmyIndex)
+            ScenarioFramework.SetCybranPlayerColor(army.ArmyIndex)
         elseif army.Faction == 4 then
             ScenarioFramework.SetSeraphimColor(army.ArmyIndex)
         end
