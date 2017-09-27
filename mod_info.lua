@@ -17,5 +17,5 @@ conflicts = {}
 mountpoints = {
     lua = '/lua',
     units = '/units',
-    'mods/galacticWar/hook' = '/schook'
+    ['mods/galacticWar/hook'] = '/schook'
 }
