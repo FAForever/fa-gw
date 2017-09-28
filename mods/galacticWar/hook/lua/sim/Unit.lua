@@ -82,13 +82,13 @@ Unit = Class(oldUnit) {
     end,
 
     UpdateActivationProgress = function(self, progress)
-        #LOG(' UpdateActivationProgress ')
+        --LOG(' UpdateActivationProgress ')
         self:SetWorkProgress(progress)
     end,
 
     AddAutoRecall = function(self)
-        #-- On killed: this function plays when the unit takes a mortal hit.  It plays all the default death effect
-        #-- it also spawns the wreckage based upon how much it was overkilled.
+        -- On killed: this function plays when the unit takes a mortal hit.  It plays all the default death effect
+        -- it also spawns the wreckage based upon how much it was overkilled.
         self.OnKilled = function(self, instigator, type, overkillRatio)
             
             self.Dead = true

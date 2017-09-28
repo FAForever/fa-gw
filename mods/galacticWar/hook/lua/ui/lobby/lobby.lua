@@ -70,7 +70,7 @@ end
 
 local connectedTo = {}
 
-local availableMods = {} # map from peer ID to set of available mods; each set is a map from "mod id"->true
+local availableMods = {} -- map from peer ID to set of available mods; each set is a map from "mod id"->true
 local selectedMods = nil
 
 local commandQueueIndex = 0
@@ -266,11 +266,11 @@ FuncSlotMenuData()
 local function GetAITooltipList()
     local aitypes = import('/lua/ui/lobby/aitypes.lua').aitypes
     local retTable = {}
-    #this is to fix tooltip problem
+    --this is to fix tooltip problem
     for i = 1, 2 do
             table.insert(retTable, nil)
     end
-    #end new faf part
+    --end new faf part
     for i, v in aitypes do
         table.insert(retTable, 'aitype_'..v.key)
     end
@@ -1571,7 +1571,7 @@ local function UpdateGame()
         GUI.observerList:DeleteAllItems()
 
         for index, observer in gameInfo.Observers do
-            observer.ObserverListIndex = GUI.observerList:GetItemCount() # Pin-head William made this zero-based
+            observer.ObserverListIndex = GUI.observerList:GetItemCount() -- Pin-head William made this zero-based
             GUI.observerList:AddItem(observer.PlayerName)
         end
     end
@@ -1711,8 +1711,8 @@ local function UpdateGame()
             local quality = Trueskill.computeQuality(teams)
             if quality and quality > 0 then
                 gameInfo.GameOptions['Quality'] = quality
-                --#local randmapText = UIUtil.CreateText(GUI.panel, "current game quality : " .. quality .. " %", 17, UIUtil.titleFont)
-				--#LayoutHelpers.AtRightTopIn(randmapText, GUI.panel, 50, 41)
+                --local randmapText = UIUtil.CreateText(GUI.panel, "current game quality : " .. quality .. " %", 17, UIUtil.titleFont)
+				--LayoutHelpers.AtRightTopIn(randmapText, GUI.panel, 50, 41)
                 if randmapText and scenarioInfo.name then
 					-- Set the map name and quality at the top right corner in lobby -- Xinnony
 					randmapText:SetText(scenarioInfo.name.." (Game quality : "..quality.."%)")
@@ -2232,9 +2232,9 @@ end
     --if gameInfo.GameOptions.ScenarioFile and (gameInfo.GameOptions.ScenarioFile != "") then
         --lastUploadedMap = gameInfo.GameOptions.ScenarioFile
         --local scenarioInfo = import('/lua/ui/maputil.lua').LoadScenario(gameInfo.GameOptions.ScenarioFile)
-        --#LOG("scbserverhostuploadmap"..gameInfo.GameOptions.ScenarioFile)
-        --#GpgNetSend("uploadmap", string.format("%s", gameInfo.GameOptions.ScenarioFile))
-        --#SendSystemMessage(LOCF("<LOC lobui_0735>The host is uploading the map %s to server.", scenarioInfo.name))
+        --LOG("scbserverhostuploadmap"..gameInfo.GameOptions.ScenarioFile)
+        --GpgNetSend("uploadmap", string.format("%s", gameInfo.GameOptions.ScenarioFile))
+        --SendSystemMessage(LOCF("<LOC lobui_0735>The host is uploading the map %s to server.", scenarioInfo.name))
     --end
 --end
 
@@ -2619,7 +2619,7 @@ function CreateUI(maxPlayers)
 
     GUI.chatDisplayScroll = UIUtil.CreateVertScrollbarFor(GUI.chatDisplay)
 
-    # OnlineProvider.RegisterChatDisplay(GUI.chatDisplay)
+    -- OnlineProvider.RegisterChatDisplay(GUI.chatDisplay)
 
     GUI.chatEdit:SetMaxChars(200)
     GUI.chatEdit.OnCharPressed = function(self, charcode)

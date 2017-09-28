@@ -21,7 +21,7 @@ end
 local function HostAddPlayer(senderId, playerInfo)
     playerInfo.OwnerID = senderId
 
-    #the slot is not random...
+    --the slot is not random...
     local slot = playerInfo.StartSpot
 
     -- while gameInfo.PlayerOptions[slot] do
@@ -30,7 +30,7 @@ local function HostAddPlayer(senderId, playerInfo)
 
     playerInfo.PlayerName = lobbyComm:MakeValidPlayerName(playerInfo.OwnerID,playerInfo.PlayerName)
 
-    # figure out a reasonable default color
+    -- figure out a reasonable default color
     for colorIndex,colorVal in gameColors.PlayerColors do
         if IsColorFree(colorIndex) then
             playerInfo.PlayerColor = colorIndex
@@ -94,7 +94,7 @@ local function CheckForLaunch()
     lobbyComm:LaunchGame(gameInfo)
 end
 
-# LobbyComm Callbacks
+-- LobbyComm Callbacks
 local function InitLobbyComm(protocol, localPort, desiredPlayerName, localPlayerUID, natTraversalProvider)
     local controlGroup = Group(parent, "controlGroup")
     local LobCreateFunc = import('/lua/ui/lobby/lobbyComm.lua').CreateLobbyComm
@@ -159,12 +159,12 @@ local function InitLobbyComm(protocol, localPort, desiredPlayerName, localPlayer
         LOG('DATA RECEIVED: ', repr(data))
 
         if lobbyComm:IsHost() then
-            # Host Messages
+            -- Host Messages
             if data.Type == 'AddPlayer' then
                 HostAddPlayer( data.SenderID, data.PlayerInfo )
             end
         else
-            # Non-Host Messages
+            -- Non-Host Messages
             if data.Type == 'Launch' then
                 LOG(repr(data.GameInfo))
                 lobbyComm:LaunchGame(data.GameInfo)
@@ -189,10 +189,10 @@ local function InitLobbyComm(protocol, localPort, desiredPlayerName, localPlayer
         localPlayerID = lobbyComm:GetLocalPlayerID()
         hostID = localPlayerID
 
-        # Give myself the first slot
+        -- Give myself the first slot
         HostAddPlayer(hostID, MakeLocalPlayerInfo(localPlayerName))
 
-        # Fill in the desired scenario.
+        -- Fill in the desired scenario.
 
         gameInfo.GameOptions.ScenarioFile = self.desiredScenario
     end
