@@ -1,12 +1,12 @@
-#
-# Ability Definitions
-#
+--#
+--# Ability Definitions
+--#
 
 abilities = {
-	['Recall'] = {
+    ['Recall'] = {
         bitmapId = 'teleport',
         enabled = true,
-		callBack = 'ToggleRecall',
+        callBack = 'ToggleRecall',
         helpText = 'recall',
         preferredSlot = 1,
         script = 'Recall',
