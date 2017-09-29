@@ -119,4 +119,18 @@ UnitBlueprint {
     SizeZ = 0.75,
     StrategicIconSortPriority = 175,
     StrategicIconName = 'icon_structure_transport',
+    Wreckage = {
+        Blueprint = '/props/DefaultWreckage/DefaultWreckage_prop.bp',
+        EnergyMult = 0,
+        HealthMult = 0.9,
+        MassMult = 0.9,
+        ReclaimTimeMultiplier = 1,
+        WreckageLayers = {
+            Air = false,
+            Land = true,
+            Seabed = false,
+            Sub = false,
+            Water = false,
+        },
+    },
 }
