@@ -83,7 +83,7 @@ UnitBlueprint {
         UnitWeight = 1,
     },
     Intel = {
-        VisionRadius = 0,
+        VisionRadius = 10,
     },
     Interface = {
         HelpText = '<LOC ueb5103_help>UEF Quantum Gate Beacon',
