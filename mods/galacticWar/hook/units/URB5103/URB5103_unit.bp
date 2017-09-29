@@ -83,7 +83,7 @@ UnitBlueprint {
         UnitWeight = 1,
     },
     Intel = {
-        VisionRadius = 0,
+        VisionRadius = 10,
     },
     Interface = {
         HelpText = '<LOC urb5103_help>Cybran Quantum Gateway Beacon',
