@@ -1,14 +1,24 @@
 UnitBlueprint {
+    AI = {
+        ShowAssistRangeOnSelect = true,
+        StagingPlatformScanRadius = 10,
+    },
     Categories = {
         'PRODUCTSC1',
-        'AEON',
-
-        #        'BUILTBYTIER3ENGINEER',
+        'SELECTABLE',
+        'SORTCONSTRUCTION',
         'STRUCTURE',
-        'TECH3',
+        'TECH1',
         'SIZE4',
         'TELEPORTBEACON',
         'VISIBLETORECON',
+        'SPECIALLOWPRI',
+        'OVERLAYMISC',
+        'SPECIALLOWPRI',
+        'BUILTBYCOMMANDER',
+        'AEON',
+        'CIVILIANDEFENSEBEACON',
+        'REINFORCEMENTSBEACON',
     },
     CollisionOffsetY = -0.25,
     Defense = {
@@ -45,7 +55,7 @@ UnitBlueprint {
     Economy = {
         BuildCostEnergy = 50,
         BuildCostMass = 5,
-        BuildTime = 50,
+        BuildTime = 150,
         RebuildBonusIds = {
             'uab5103',
         },
@@ -80,8 +90,8 @@ UnitBlueprint {
         HelpText = '<LOC uab5103_help>Aeon Quantum Gate Beacon',
     },
     LifeBarHeight = 0.075,
-    LifeBarOffset = 1,
-    LifeBarSize = 1,
+    LifeBarOffset = 0.4,
+    LifeBarSize = 0.75,
     Physics = {
         BankingSlope = 0,
         BuildOnLayerCaps = {
@@ -109,4 +119,5 @@ UnitBlueprint {
     SizeY = 1,
     SizeZ = 1,
     StrategicIconSortPriority = 175,
+    StrategicIconName = 'icon_structure_transport',
 }
