@@ -14,8 +14,8 @@ UEB5103 = Class(TStructureUnit) {
     FxTransportBeacon = {'/effects/emitters/red_beacon_light_01_emit.bp'},
     FxTransportBeaconScale =1,
 
-    OnCreate = function(self)
-        TStructureUnit.OnCreate(self)
+    OnStopBeingBuilt = function(self)
+        TStructureUnit.OnStopBeingBuilt(self)
         for k, v in self.FxTransportBeacon do
             self.Trash:Add(CreateAttachedEmitter(self, 0, -1, v):ScaleEmitter(self.FxTransportBeaconScale))
         end
