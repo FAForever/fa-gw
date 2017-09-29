@@ -3,6 +3,18 @@ UnitBlueprint {
         ShowAssistRangeOnSelect = true,
         StagingPlatformScanRadius = 10,
     },
+    Audio = {
+        Destroyed = Sound {
+            Bank = 'UELDestroy',
+            Cue = 'UEB_Destroy_Med_Land',
+            LodCutoff = 'UnitMove_LodCutoff',
+        },
+        UISelection = Sound {
+            Bank = 'Interface',
+            Cue = 'UEF_Select_Structure',
+            LodCutoff = 'UnitMove_LodCutoff',
+        },
+    },
     Categories = {
         'PRODUCTSC1',
         'SELECTABLE',
