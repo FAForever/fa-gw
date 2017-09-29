@@ -1,14 +1,24 @@
 UnitBlueprint {
+    AI = {
+        ShowAssistRangeOnSelect = true,
+        StagingPlatformScanRadius = 10,
+    },
     Categories = {
         'PRODUCTSC1',
-        'CYBRAN',
-
-        #        'BUILTBYTIER3ENGINEER',
+        'SELECTABLE',
+        'SORTCONSTRUCTION',
         'STRUCTURE',
-        'TECH3',
+        'TECH1',
         'SIZE4',
         'TELEPORTBEACON',
         'VISIBLETORECON',
+        'SPECIALLOWPRI',
+        'OVERLAYMISC',
+        'SPECIALLOWPRI',
+        'BUILTBYCOMMANDER',
+        'CYBRAN',
+        'CIVILIANDEFENSEBEACON',
+        'REINFORCEMENTSBEACON',
     },
     CollisionOffsetY = -0.25,
     Defense = {
@@ -21,7 +31,7 @@ UnitBlueprint {
         SubThreatLevel = 0,
         SurfaceThreatLevel = 0,
     },
-    Description = '<LOC urb5103_desc>Quantum Gate Beacon',
+    Description = '<LOC urb5103_desc>Cybran Quantum Gate Beacon',
     Display = {
         Mesh = {
             IconFadeInZoom = 130,
@@ -45,7 +55,7 @@ UnitBlueprint {
     Economy = {
         BuildCostEnergy = 50,
         BuildCostMass = 5,
-        BuildTime = 50,
+        BuildTime = 150,
         RebuildBonusIds = {
             'urb5103',
         },
@@ -77,10 +87,10 @@ UnitBlueprint {
         VisionRadius = 0,
     },
     Interface = {
-        HelpText = '<LOC urb5103_help>Quantum Gateway Node',
+        HelpText = '<LOC urb5103_help>Cybran Quantum Gateway Beacon',
     },
     LifeBarHeight = 0.075,
-    LifeBarOffset = 0.05,
+    LifeBarOffset = 0.4,
     LifeBarSize = 0.75,
     Physics = {
         BankingSlope = 0,
@@ -109,4 +119,5 @@ UnitBlueprint {
     SizeY = 1,
     SizeZ = 1,
     StrategicIconSortPriority = 175,
+    StrategicIconName = 'icon_structure_transport',
 }

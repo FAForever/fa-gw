@@ -1,14 +1,24 @@
 UnitBlueprint {
+    AI = {
+        ShowAssistRangeOnSelect = true,
+        StagingPlatformScanRadius = 10,
+    },
     Categories = {
         'PRODUCTSC1',
-        'UEF',
-
-        #        'BUILTBYTIER3ENGINEER',
+        'SELECTABLE',
+        'SORTCONSTRUCTION',
         'STRUCTURE',
-        'TECH3',
+        'TECH1',
         'SIZE4',
         'TELEPORTBEACON',
         'VISIBLETORECON',
+        'SPECIALLOWPRI',
+        'OVERLAYMISC',
+        'SPECIALLOWPRI',
+        'BUILTBYCOMMANDER',
+        'UEF',
+        'CIVILIANDEFENSEBEACON',
+        'REINFORCEMENTSBEACON',
     },
     CollisionOffsetY = -0.25,
     Defense = {
@@ -24,10 +34,11 @@ UnitBlueprint {
     Description = '<LOC ueb5103_desc>UEF Quantum Gate Beacon',
     Display = {
         Mesh = {
-            IconFadeInZoom = 0,
+            IconFadeInZoom = 130,
             LODs = {
                 {
                     LODCutoff = 100,
+                    Scrolling = true,
                     ShaderName = 'Unit',
                 },
                 {
@@ -44,7 +55,7 @@ UnitBlueprint {
     Economy = {
         BuildCostEnergy = 50,
         BuildCostMass = 5,
-        BuildTime = 50,
+        BuildTime = 150,
         RebuildBonusIds = {
             'ueb5103',
         },
@@ -79,8 +90,8 @@ UnitBlueprint {
         HelpText = '<LOC ueb5103_help>UEF Quantum Gate Beacon',
     },
     LifeBarHeight = 0.075,
-    LifeBarOffset = 1,
-    LifeBarSize = 1,
+    LifeBarOffset = 0.4,
+    LifeBarSize = 0.75,
     Physics = {
         BankingSlope = 0,
         BuildOnLayerCaps = {
@@ -108,4 +119,5 @@ UnitBlueprint {
     SizeY = 1,
     SizeZ = 1,
     StrategicIconSortPriority = 175,
+    StrategicIconName = 'icon_structure_transport',
 }
