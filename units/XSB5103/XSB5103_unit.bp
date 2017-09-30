@@ -2,32 +2,37 @@ UnitBlueprint {
     AI = {
         ShowAssistRangeOnSelect = true,
         StagingPlatformScanRadius = 10,
-    },	
-	
+    },
+    Audio = {
+        Destroyed = Sound {
+            Bank = 'XSL_Destroy',
+            Cue = 'XSB_Destroy_Huge',
+            LodCutoff = 'UnitMove_LodCutoff',
+        },
+        UISelection = Sound {
+            Bank = 'SeraphimSelect',
+            Cue = 'Seraphim_Select_Structure',
+            LodCutoff = 'UnitMove_LodCutoff',
+        },
+    },
     Categories = {
         'PRODUCTSC1',
-  		'SELECTABLE',
-		'RALLYPOINT', #new, for rally point
-		'SHOWQUEUE',#new, for rally point
-        'SORTCONSTRUCTION',#new, for rally point
-		'CONSTRUCTION',	#new, for rally point	
-		#'FACTORY',#new, for rally point
-        #'BUILTBYTIER3ENGINEER',
+        'SELECTABLE',
+        'SORTCONSTRUCTION',
         'STRUCTURE',
         'TECH1',
         'SIZE4',
         'TELEPORTBEACON',
         'VISIBLETORECON',
-		'SPECIALLOWPRI',
-		#'UNTARGETABLE',
-		'OVERLAYMISC', #for air staging radius
-		'SPECIALLOWPRI',
-		'BUILTBYCOMMANDER',
-		'SERAPHIM',
-		'CIVILIANDEFENSEBEACON',
-		'REINFORCEMENTSBEACON',
+        'SPECIALLOWPRI',
+        'OVERLAYMISC',
+        'SPECIALLOWPRI',
+        'BUILTBYCOMMANDER',
+        'SERAPHIM',
+        'CIVILIANDEFENSEBEACON',
+        'REINFORCEMENTSBEACON',
     },
-    CollisionOffsetY = -0.25,
+    CollisionOffsetZ = -0.2,
     Defense = {
         AirThreatLevel = 0,
         ArmorType = 'Structure',
@@ -38,33 +43,28 @@ UnitBlueprint {
         SubThreatLevel = 0,
         SurfaceThreatLevel = 0,
     },
-    Description = '<LOC urb5103_desc>Quantum Gate Beacon',
+    Description = '<LOC xsb5103_desc>Seraphim Quantum Gate Beacon',
     Display = {
         Mesh = {
             IconFadeInZoom = 130,
             LODs = {
                 {
-                    LODCutoff = 100,
+                    LODCutoff = 130,
                     Scrolling = true,
-                    ShaderName = 'Insect',
-                },
-                {
-                    AlbedoName = 'urb5103_lod1_albedo.dds',
-                    LODCutoff = 215,
-                    ShaderName = 'Insect',
-                    SpecularName = 'urb5103_lod1_specteam.dds',
+                    LookupName = '/textures/environment/Falloff_seraphim_lookup.dds',
+                    ShaderName = 'Seraphim',
                 },
             },
         },
         SpawnRandomRotation = false,
-        UniformScale = 0.1,
+        UniformScale = 0.08,
     },
     Economy = {
         BuildCostEnergy = 50,
         BuildCostMass = 5,
         BuildTime = 150,
         RebuildBonusIds = {
-            'urb5103',
+            'xsb5103',
         },
     },
     General = {
@@ -91,14 +91,14 @@ UnitBlueprint {
         UnitWeight = 1,
     },
     Intel = {
-        VisionRadius = 0,
+        VisionRadius = 10,
     },
     Interface = {
-        HelpText = '<LOC urb5103_help>Quantum Gateway Node',
+        HelpText = '<LOC xsb5103_help>Seraphim Quantum Gate Beacon',
     },
     LifeBarHeight = 0.075,
-    LifeBarOffset = 0.05,
-    LifeBarSize = 0.75,
+    LifeBarOffset = 0.4,
+    LifeBarSize = 0.6,
     Physics = {
         BankingSlope = 0,
         BuildOnLayerCaps = {
@@ -120,11 +120,25 @@ UnitBlueprint {
         TurnRate = 0,
     },
     SelectionSizeX = 0.3,
-    SelectionSizeZ = 0.3,
-    SelectionThickness = 1.2,
-    SizeX = 1,
-    SizeY = 1,
-    SizeZ = 1,
+    SelectionSizeZ = 0.45,
+    SelectionThickness = 0.66,
+    SizeX = 0.4,
+    SizeY = 0.4,
+    SizeZ = 0.8,
     StrategicIconSortPriority = 175,
-	StrategicIconName = 'icon_structure_mass',
+    StrategicIconName = 'icon_structure_transport',
+    Wreckage = {
+        Blueprint = '/props/DefaultWreckage/DefaultWreckage_prop.bp',
+        EnergyMult = 0,
+        HealthMult = 0.9,
+        MassMult = 0.9,
+        ReclaimTimeMultiplier = 1,
+        WreckageLayers = {
+            Air = false,
+            Land = true,
+            Seabed = false,
+            Sub = false,
+            Water = false,
+        },
+    },
 }
