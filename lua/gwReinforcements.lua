@@ -3,42 +3,19 @@ local ScenarioFramework = import('/lua/ScenarioFramework.lua')
 local explosion = import('/lua/defaultexplosions.lua')
 local SimUtils = import('/lua/SimUtils.lua')
 
-local UEF = 1
-local AEON = 2
-local CYB = 3
-local SERA = 4
-local TransportInfo = {}
-TransportInfo[UEF] = {}
-TransportInfo[UEF][3] = 3 
-TransportInfo[UEF][2] = 6
-TransportInfo[UEF][1] = 14
-TransportInfo[UEF].Name = 'UEA0104'
-TransportInfo[AEON] = {}
-TransportInfo[AEON][3] = 2 
-TransportInfo[AEON][2] = 6
-TransportInfo[AEON][1] = 12
-TransportInfo[AEON].Name = 'UAA0104'
-TransportInfo[CYB] = {}
-TransportInfo[CYB][3] = 2 
-TransportInfo[CYB][2] = 4
-TransportInfo[CYB][1] = 10
-TransportInfo[CYB].Name = 'URA0104'
-TransportInfo[SERA] = {}
-TransportInfo[SERA][3] = 4 
-TransportInfo[SERA][2] = 8
-TransportInfo[SERA][1] = 16
-TransportInfo[SERA].Name = 'XSA0104'
+-- {Number of Tech 3, 2, 1 units that can fit into the transport}
+local TransportInfo = {
+    {14, 6, 3, bpID = 'UEA0104'}, -- UEF
+    {12, 6, 2, bpID = 'UAA0104'}, -- Aeon
+    {10, 4, 2, bpID = 'URA0104'}, -- Cybran
+    {16, 8, 4, bpID = 'XSA0104'}, -- Seraphim
+}
 
 local armySupport = {}
 local armySupportIndex = {}
 
-local factions = {}
-factions[1] = 1
-factions[2] = 1
-
-local teams = {}
-teams[1] = -1
-teams[2] = -1
+local factions = {1, 1}
+local teams = {-1, -1}
 
 
 function assignSupports()
@@ -562,14 +539,14 @@ function SpawnTransportedReinforcements(beacon, unitsToSpawn, group)
             table.insert(LoadForThisTransport, unit)
             --if we reached max load for one transport, spawn it, load unit, set orders, start counting again 
             if counter == TransportCapacity then
-                ForkThread(SpawnTransportAndIssueDrop, TransportInfo[beacon.Faction].Name, LoadForThisTransport, NearestOffMapLocation, beacon, group)
+                ForkThread(SpawnTransportAndIssueDrop, TransportInfo[beacon.Faction].bpID, LoadForThisTransport, NearestOffMapLocation, beacon, group)
                 counter = 0
                 LoadForThisTransport = {}
             end 
         end
         --this is to make sure we spawn a transport even if we don't have enough units to completely fill one up'
         if counter > 0 then
-            ForkThread(SpawnTransportAndIssueDrop, TransportInfo[beacon.Faction].Name, LoadForThisTransport, NearestOffMapLocation, beacon, group)
+            ForkThread(SpawnTransportAndIssueDrop, TransportInfo[beacon.Faction].bpID, LoadForThisTransport, NearestOffMapLocation, beacon, group)
         end
     end
 
