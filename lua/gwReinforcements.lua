@@ -37,19 +37,19 @@ function assignSupports()
             army.Team = teams[1]
             army.Civilian = false
             army.ArmyColor = 1
-            army.PlayerColor= 1
+            army.PlayerColor = 1
             army.Faction = factions[1]
-            army.PlayerName="gw_support_1"
+            army.PlayerName = "gw_support_1"
             armySupport[army.Team] = army.ArmyName
             armySupportIndex[army.Team] = army.ArmyIndex
             army.Support = true
         elseif army.ArmyName == "SUPPORT_2" then
             army.Team = teams[2]
             army.ArmyColor = 2
-            army.PlayerColor=2
+            army.PlayerColor = 2
             army.Civilian = false
             army.Faction = factions[2]
-            army.PlayerName="gw_support_2"          
+            army.PlayerName = "gw_support_2"          
             armySupport[army.Team] = army.ArmyName
             armySupportIndex[army.Team] = army.ArmyIndex
             army.Support = true
