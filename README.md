@@ -29,7 +29,7 @@ The game uses the standard `GPGNetSend()` protocol to send information back to t
 ### GW specific messages
 TODO: A proper list with all the things that the game sends.
 * `GpgNetSend('ArmyCalled', armyIndex, groupidx)` When a group of units from the reinforcements is used.
-* `GpgNetSend('GameResult', armyIndex, result)` Army brain reporting a result. Result is a string containing a result type and the score. GW adds two new result types `recall` and `autorecall`. Example: `GpgNetSend('GameResult', 1, 'recall -10')`.
+* `GpgNetSend('GameResult', armyIndex, result)` Army brain reporting a result. Result is a string containing a [result type and the score](mods/galacticWar/hook/lua/aibrain.lua#L3-L5). GW adds two new result types `recall` and `autorecall`. Example: `GpgNetSend('GameResult', 1, 'recall -10')`.
 
 ## Offline testing
 To debug many thing, make and test new features the game can be started offline as well. It just needs to be provided with correct data.
