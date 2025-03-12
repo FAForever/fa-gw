@@ -1,6 +1,8 @@
 local AbilityDefinition = import('/lua/abilitydefinition.lua').abilities
 
 -- Add result point for recalling, for reporting the score to the server
+--TODO: these is a new system for this
+Points = {}
 Points.recall = -10
 Points.autorecall = -10
 
