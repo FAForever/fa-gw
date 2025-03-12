@@ -251,4 +251,9 @@ AIBrain = Class(oldAIBrain) {
         end
         return r
     end,
+
+    GetStartVector3f = function(self)
+        local startX, startZ = self:GetArmyStartPos()
+        return {startX, 0, startZ}
+    end,
 }
