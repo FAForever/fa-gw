@@ -54,7 +54,7 @@ function assignSupports()
             army.Support = true
         end
     end
-end 
+end
 
 function gwSetAiColor(index, faction)
     if faction == 1 then
@@ -80,7 +80,7 @@ function gwReinforcementsMainThread()
     ScenarioInfo.gwReinforcementList = gwReinforcementList
     
     local ArmiesList = ScenarioInfo.ArmySetup
-    WARN('armieslist is ' .. repr (ArmiesList))
+    --WARN('armieslist is ' .. repr (ArmiesList))
 
     local HumanPlayerACUs = GetACUs(ScenarioInfo.ArmySetup)
     for index, HumanACU in HumanPlayerACUs do
