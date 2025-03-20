@@ -6,14 +6,14 @@ local ranks = {
 }
 
 local oldSetupPlayerLines = SetupPlayerLines
+--TODO: For some reason only one of the players displays the correct rank
 function SetupPlayerLines()
     -- Overrite the player's nickname to include the rank
     for armyIndex, armyData in GetArmiesTable().armiesTable do
         local playerName = armyData.nickname
-        -- TODO: This info is missing
         local playerRank = sessionInfo.Options.Ranks[playerName]
-        if (playerRank) then
-            playerName = ranks[armyData.faction][playerRank+1] .. " " .. playerName
+        if playerRank then
+            playerName = ranks[armyData.faction][playerRank] .. " " .. playerName
         end
         armyData.nickname = playerName
         --LOG("Player's name update to: " .. playerName)
