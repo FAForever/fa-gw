@@ -9,8 +9,9 @@ do
     local oldCreateLocalPlayer = AutolobbyCommunications.CreateLocalPlayer
     AutolobbyCommunications.CreateLocalPlayer = function(self)
         local info = oldCreateLocalPlayer(self)
-        -- Add rank info
-        info.Rank = tonumber(GetCommandLineArg("/rank", 1)[1])
+        -- Add faction and rank info
+        info.Faction = self:GetCommandLineArgumentNumber("/faction", 1) + 1
+        info.Rank = self:GetCommandLineArgumentNumber("/rank", 1)
         --WARN("AutolobbyCommunications hooked")
         return info
     end
