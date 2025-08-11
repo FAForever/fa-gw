@@ -1,5 +1,10 @@
-# Galactic War
-This is the Lua code of the **Galactic War support mod** for the [Forged Alliance Forever](https://www.faforever.com/).
+# FAF Galactic War game mod
+
+This is Lua game mod for [Forged Alliance Forever](https://www.faforever.com/) Galactic War
+
+## Related repositories
+- [Galactic War client](https://github.com/speed2CZ/speed-faf-client) - A FAF client capable of communicating with this server. Provides galaxy editor, testing and playing the Galactic War.
+- [Galactic War server](https://github.com/faForever/faf-gw-server) - A Node.js WebSocket server for managing the universe state, core logic and set up games.
 
 ## Launching a game
 The game is set up by a very similar way as a ladder game. It doesn't open the normal game lobby where players could change anything, instead just shows the "Setting up Automatch" screen and everything happens in the background. Once all players are connected, the game starts.
@@ -18,12 +23,12 @@ To properly set up a GW game, several **command line arguments** needs to be pro
   * `/init init_gw.lua` The init file for the GW mod, in the `\bin` folder of the FAF game patch.
   * `/players number` Total number of players required to launch the game.
 * Per player
-  * `/faction` Faction of the player. Example: `/uef` (This one is kinda an exception, when it's not using a number to set the faction, but the name of the argument directly.)
+  * `/faction number` Faction of the player. Example: `/faction 0` for UEF.
   * `/team number` Number of the team, the player belong to.
-  * `/rank number` Rank of the player.
-  * `/StartSpot number` Starting position of the player.
+  * `/rank number` GW Rank of the player.
+  * `/startspot number` Starting position of the player.
 
-## Game to Server communication
+## Communication with the lobby server
 The game uses the standard `GPGNetSend()` protocol to send information back to the server. It's used to imform about players dying, reinforcements being used, game end, etc...
 
 ### GW specific messages
@@ -32,5 +37,7 @@ TODO: A proper list with all the things that the game sends.
 * `GpgNetSend('GameResult', armyIndex, result)` Army brain reporting a result. Result is a string containing a [result type and the score](mods/galacticWar/hook/lua/aibrain.lua#L3-L5). GW adds two new result types `recall` and `autorecall`. Example: `GpgNetSend('GameResult', 1, 'recall -10')`.
 
 ## Offline testing
-To debug many thing, make and test new features the game can be started offline as well. It just needs to be provided with correct data.
-TODO: Proper guide for offline testing.
+Currently a very crude way for testing:
+1. Init file to load this mod with in-game unit [reinforcements](lua/gwReinforcementList.lua) file.
+2. Edited map scenario.lua file that adds support armies. `ExtraArmies = "SUPPORT_1 SUPPORT_2"`
+
