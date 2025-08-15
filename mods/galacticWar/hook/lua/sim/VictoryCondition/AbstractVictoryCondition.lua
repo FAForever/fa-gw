@@ -13,7 +13,7 @@ do
 
             self:FlagBrainAsProcessed(aiBrain)
             self:ToObserver(aiBrain)
-            aiBrain:OnRecall()
+            aiBrain:OnDefeat()
 
             local brainIndex = aiBrain.Army
             -- GW: Hack in recall result, maybe there's a better solution to be made in the future?
