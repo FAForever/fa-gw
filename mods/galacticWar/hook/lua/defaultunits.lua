@@ -3,6 +3,8 @@ local utilities = import('/lua/utilities.lua')
 local oldACUUnit = ACUUnit
 local oldOnCreate = ACUUnit.OnCreate
 local oldOnStartBuild = ACUUnit.OnStartBuild
+local oldOnKilled = ACUUnit.OnKilled
+---@type ACUUnit
 ACUUnit = Class(oldACUUnit) {
 	OnCreate = function(self)
 		oldOnCreate(self)
@@ -30,5 +32,25 @@ ACUUnit = Class(oldACUUnit) {
     	oldOnStartBuild(self, unitBeingBuilt, order)
 
     	self.Idling = false
+    end,
+
+    ---@param self ACUUnit
+    ---@param instigator Unit
+    ---@param type string
+    ---@param overkillRatio number
+    OnKilled = function(self, instigator, type, overkillRatio)
+        oldOnKilled(self, instigator, type, overkillRatio)
+
+        if not Sync.CommanderKilled then
+            Sync.CommanderKilled = {}
+        end
+        local data = {
+            armyIndex = self.Army
+        }
+        if instigator and instigator.Army then
+            data.instigatorIndex = instigator.Army
+        end
+
+        table.insert(Sync.CommanderKilled, data)
     end,
 }
