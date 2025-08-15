@@ -36,7 +36,7 @@ controls = {
     orderButtonGrid = false,
     bg = false,
     orderGlow = false,
-    NewButtonGlows = false,
+    NewButtonGlows = {},
     parent = false,
 }
 
