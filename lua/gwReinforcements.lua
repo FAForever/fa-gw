@@ -34,7 +34,7 @@ function assignSupports()
     for name,army in ScenarioInfo.ArmySetup do
         if army.ArmyName == "SUPPORT_1" then
             army.Team = teams[1]
-            army.Civilian = false
+            army.Civilian = true
             army.ArmyColor = 1
             army.PlayerColor = 1
             army.Faction = factions[1]
@@ -46,7 +46,7 @@ function assignSupports()
             army.Team = teams[2]
             army.ArmyColor = 2
             army.PlayerColor = 2
-            army.Civilian = false
+            army.Civilian = true
             army.Faction = factions[2]
             army.PlayerName = "gw_support_2"          
             armySupport[army.Team] = army.ArmyName
@@ -97,7 +97,7 @@ function gwReinforcementsMainThread()
     GetArmyBrain(armySupportIndex[teams[2]]):SetResourceSharing(false)
 
     LOG("ScenarioInfo.gwReinforcementList")
-    LOG(repr(ScenarioInfo.gwReinforcementList))
+    --LOG(repr(ScenarioInfo.gwReinforcementList))
 
     SpawnInitialStructures(ScenarioInfo.gwReinforcementList.initialStructure, ArmiesList)
     SpawnInitialReinforcements(ScenarioInfo.gwReinforcementList.initialUnitWarp, ArmiesList)
