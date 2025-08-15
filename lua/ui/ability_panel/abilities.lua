@@ -35,7 +35,7 @@ controls = {
     mouseoverDisplay = false,
     orderButtonGrid = false,
     bg = false,
-    orderGlow = false,
+    orderGlow = {},
     NewButtonGlows = {},
     parent = false,
 }
@@ -166,7 +166,7 @@ function AddReinforcements(list)
         defaultOrdersTable[AbilityName].behavior = AbilityButtonBehavior
         defaultOrdersTable[AbilityName].behaviordoubleclick = AbilityButtonBehaviorDoubleClick
         ButtonParams[AbilityName] = { CoolDownTime = true, CurrCoolDownTime = delay, CoolDownEnabled = false, CoolDownTimerValue = delay }
-        LOG(repr(ButtonParams[AbilityName]))
+        --LOG(repr(ButtonParams[AbilityName]))
         SetAvailableOrders()	
     end
 end
