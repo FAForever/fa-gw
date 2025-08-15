@@ -1,11 +1,5 @@
 local AbilityDefinition = import('/lua/abilitydefinition.lua').abilities
 
--- Add result point for recalling, for reporting the score to the server
---TODO: these is a new system for this
-Points = {}
-Points.recall = -10
-Points.autorecall = -10
-
 local oldAIBrain = AIBrain
 local oldOnCreateHuman = AIBrain.OnCreateHuman
 
@@ -107,11 +101,8 @@ AIBrain = Class(oldAIBrain) {
     end,
 
     OnRecall = function(self)
-        self:SetResult("recall")
         self:AddArmyStat("Recall", 1)
-
-        -- Handle the rest as if the player died
-        self:OnDefeat()
+        self.Recalled = true
     end,
 
     OnAutoRecall = function(self)
