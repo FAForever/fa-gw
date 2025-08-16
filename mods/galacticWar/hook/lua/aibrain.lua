@@ -119,9 +119,9 @@ AIBrain = Class(oldAIBrain) {
         StartAbilityCoolDown(army, 'CallReinforcement_' .. list.group)
     end,
 
-    ReinforcementsCalled = function(self, group)
+    ReinforcementsCalled = function(self, group, groupId)
         DisableSpecialAbility(self:GetArmyIndex(), 'CallReinforcement_' .. group)
-        table.insert(Sync.ReinforcementCalled, {self:GetArmyIndex(), group })
+        table.insert(Sync.ReinforcementCalled, {self:GetArmyIndex(), groupId })
     end,
 
     AddSpecialAbilityUnit = function(self, unit, type, autoEnable)

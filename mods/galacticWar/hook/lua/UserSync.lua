@@ -54,8 +54,8 @@ OnSync = function()
 
     if Sync.ReinforcementCalled then
         for k, group in Sync.ReinforcementCalled do
-            local armyIndex, groupidx = unpack(group)
-            GpgNetSend('UnitGroupCalled', armyIndex, groupidx)
+            local armyIndex, groupId = unpack(group)
+            GpgNetSend('UnitGroupCalled', armyIndex, groupId)
         end
     end
 end

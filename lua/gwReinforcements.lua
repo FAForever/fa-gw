@@ -108,7 +108,7 @@ function SpawnInitialStructures(gwSpawnList, Armies)
     local counter = 1
     for _, List in gwSpawnList do
         for ArmyName, Army in Armies do
-            if Army.PlayerName == List.playerName then
+            if tonumber(Army.OwnerId) == List.playerId then
                 ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(InitialStructuresSpawnThread, List, Army)
                 counter = counter + 1 
             end
@@ -120,7 +120,7 @@ function SpawnPeriodicReinforcements(gwSpawnList, Armies)
     local counter = 1
     for _, List in gwSpawnList do
         for ArmyName, Army in Armies do
-            if Army.PlayerName == List.playerName then
+            if tonumber(Army.OwnerId) == List.playerId then
                 ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(PeriodicReinforcementsSpawnThread, List, Army)
                 counter = counter + 1 
             end
@@ -132,7 +132,7 @@ function SpawnInitialReinforcements(gwSpawnList, Armies)
     local counter = 1
     for _, List in gwSpawnList do
         for ArmyName, Army in Armies do
-            if Army.PlayerName == List.playerName then
+            if tonumber(Army.OwnerId) == List.playerId then
                 ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(InitialReinforcementsSpawnThread, List, Army)
                 counter = counter + 1 
             end
@@ -305,11 +305,11 @@ function ModBeacon(ACU, beacon)
                 end
 
                 if table.getn(Units) > 0 then
-                    CallReinforcementsToBeacon(self, Units, List.group)
+                    CallReinforcementsToBeacon(self, Units, List.group, List.groupId)
                 end
 
                 if table.getn(Buildings) > 0 then
-                    CallEngineersToBeacon(self, Buildings, List.group)
+                    CallEngineersToBeacon(self, Buildings, List.group, List.groupId)
                 end
                 table.insert(toRemove, idx)
             end
@@ -324,8 +324,15 @@ end
 -- this function check all passive items.
 function CheckPassiveItems(ACU)
     local brain = ACU:GetAIBrain()
+    local playerId
+    for ArmyName, Army in ScenarioInfo.ArmySetup do
+        if ArmyName == brain.Name then
+            playerId = tonumber(Army.OwnerID)
+            break
+        end
+    end
     for _, List in ScenarioInfo.gwReinforcementList.passiveItems do
-        if List.playerName == brain.Nickname then
+        if List.playerId == playerId then
             if List.itemNames then
                 for _, itemname in List.itemNames do
                     if itemname == "autorecall" then
@@ -341,8 +348,17 @@ end
 function CheckUnitsDelay(ACU)
     ACU.unitsDelays = {}
     local brain = ACU:GetAIBrain()
+    local playerId
+
+    for ArmyName, Army in ScenarioInfo.ArmySetup do
+        if ArmyName == brain.Name then
+            playerId = tonumber(Army.OwnerID) or -1
+            break
+        end
+    end
+
     for _, List in ScenarioInfo.gwReinforcementList.transportedUnits do
-        if List.playerName == brain.Nickname then
+        if List.playerId == playerId then
             brain:AddReinforcements(List)
             table.insert(ACU.unitsDelays, List)
         end 
@@ -393,7 +409,7 @@ function CallEngineersToBeacon(beacon, List, group)
     end
 end
 
-function CallReinforcementsToBeacon(beacon, List, group)
+function CallReinforcementsToBeacon(beacon, List, group, groupId)
     --bring in units + engineers + etc
     --[[
     beacon.Army = nil
@@ -415,7 +431,7 @@ function CallReinforcementsToBeacon(beacon, List, group)
     beacon.NearestOffMapLocation = CalculateNearestOffMapLocation(beacon)
     --WARN('beacon.UnitReinforcementsToCall is ' .. repr(beacon.UnitReinforcementsToCall))
     if beacon.UnitReinforcementsToCall then
-        SpawnTransportedReinforcements(beacon, beacon.UnitReinforcementsToCall, group)
+        SpawnTransportedReinforcements(beacon, beacon.UnitReinforcementsToCall, group, groupId)
     end
 end
 
@@ -459,7 +475,7 @@ function CalculateNearestOffMapLocation(beacon)
     return NearestOffMapLocation
 end
 
-function SpawnTransportedReinforcements(beacon, unitsToSpawn, group)
+function SpawnTransportedReinforcements(beacon, unitsToSpawn, group, groupId)
     WARN('Spawningtransported Reinforcements')
     local NearestOffMapLocation = beacon.NearestOffMapLocation 
     local UnitsToTransport = {}
@@ -490,14 +506,14 @@ function SpawnTransportedReinforcements(beacon, unitsToSpawn, group)
             table.insert(LoadForThisTransport, unit)
             --if we reached max load for one transport, spawn it, load unit, set orders, start counting again 
             if counter == TransportCapacity then
-                ForkThread(SpawnTransportAndIssueDrop, TransportInfo[beacon.Faction].bpID, LoadForThisTransport, NearestOffMapLocation, beacon, group)
+                ForkThread(SpawnTransportAndIssueDrop, TransportInfo[beacon.Faction].bpID, LoadForThisTransport, NearestOffMapLocation, beacon, group, groupId)
                 counter = 0
                 LoadForThisTransport = {}
             end 
         end
         --this is to make sure we spawn a transport even if we don't have enough units to completely fill one up'
         if counter > 0 then
-            ForkThread(SpawnTransportAndIssueDrop, TransportInfo[beacon.Faction].bpID, LoadForThisTransport, NearestOffMapLocation, beacon, group)
+            ForkThread(SpawnTransportAndIssueDrop, TransportInfo[beacon.Faction].bpID, LoadForThisTransport, NearestOffMapLocation, beacon, group, groupId)
         end
     end
 
@@ -505,7 +521,7 @@ function SpawnTransportedReinforcements(beacon, unitsToSpawn, group)
     --there doesn't appear to be a way to do this quickly, so we're just going to add 1 for every 2 class 3 units, 1 for every 6 class 2 units, and 1 for every 12 class 1 units
 end
 
-function SpawnTransportAndIssueDrop(transportBPid, units, NearestOffMapLocation, beacon, group)
+function SpawnTransportAndIssueDrop(transportBPid, units, NearestOffMapLocation, beacon, group, groupId)
     --WARN('spawning transport, bpid and army are ' .. repr(transportBPid) .. ' and ' .. repr(beacon.ArmyName))
     local transport = CreateUnitHPR(transportBPid, armySupport[beacon.Team], NearestOffMapLocation[1], NearestOffMapLocation[2], NearestOffMapLocation[3], 0, 0, 0)
 
@@ -532,7 +548,7 @@ function SpawnTransportAndIssueDrop(transportBPid, units, NearestOffMapLocation,
 
     cmd = Transports:MoveToLocation(beaconPosition, false)
 
-    beacon.AiBrain:ReinforcementsCalled(group)
+    beacon.AiBrain:ReinforcementsCalled(group, groupId)
     if cmd then
         while Transports:IsCommandsActive(cmd) do
             WaitSeconds(1)
