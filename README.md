@@ -14,7 +14,7 @@ This is the list of files for the GW mod to work. They need to be downloaded fro
 1. `init_gw.lua` [Init file](init_gw.lua) of the mod placed in `\bin` folder.
 2. `gw_mod.gw` The actual mod, placed in the `\gamedata` folder. All folders and files from this repo packed into a `.zip` file and renamed to `.gw`. The file extension is used by the init file to load only the files we need for the GW.
 3. `gw_reinforcements.gw` A Lua file with the in-game unit [reinforcements](lua/gwReinforcementList.lua) that will be generated before every game. Again packed into `.zip` and renamed, placed in the `\gamedata` folder. I will specify later what structure it needs to work...
-4. Similar as above, a file with the map scenario. Again I will have to figure out how exactly this needs to be set and if it can be done directly in the game without the need of generating it at all.
+4. `gw_scenario.gw` Generated maps's `_scenario.lua` file to be hooked for the reinforcements functionality. See `EXAMPLE_MAP_scenario.lua`.
 
 ### Reguired command line arguments
 To properly set up a GW game, several **command line arguments** needs to be provided at the game start by the FAF client.
