@@ -32,9 +32,9 @@ To properly set up a GW game, several **command line arguments** needs to be pro
 The game uses the standard `GPGNetSend()` protocol to send information back to the server. It's used to imform about players dying, reinforcements being used, game end, etc...
 
 ### GW specific messages
-TODO: A proper list with all the things that the game sends.
-* `GpgNetSend('ArmyCalled', armyIndex, groupidx)` When a group of units from the reinforcements is used.
-* `GpgNetSend('GameResult', armyIndex, result)` Army brain reporting a result. Result is a string containing a [result type and the score](mods/galacticWar/hook/lua/aibrain.lua#L3-L5). GW adds two new result types `recall` and `autorecall`. Example: `GpgNetSend('GameResult', 1, 'recall -10')`.
+* `GpgNetSend('UnitGroupCalled', armyIndex, groupId)` When a group of units from the reinforcements is used.
+* `GpgNetSend('CommanderKilled', armyIndex, instigatorArmyIndex)` When a commander is killed.
+* `GpgNetSend('GameResult', armyIndex, result)` Army brain reporting a result. GW adds two new result types `recall` and `autorecall`. Example: `GpgNetSend('GameResult', 1, 'recall -10')`.
 
 ## Offline testing
 Currently a very crude way for testing:
