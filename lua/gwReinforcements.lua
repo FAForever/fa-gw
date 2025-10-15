@@ -430,25 +430,6 @@ local function callReinforcementsToBeacon(beacon, List, group, groupId)
     end
 end
 
-local function getACUs(armies)
-    local ACUs = {}
-
-    for ArmyName, Army in armies do
-        if Army.Human then 
-            local brain = GetArmyBrain(Army.ArmyIndex)
-            local units = brain:GetListOfUnits(categories.COMMAND, false)
-            if units then
-                for _, unit in units do
-                    ACUs[unit:GetArmy()] = unit
-                    brain:AddSpecialAbilityUnit( unit, 'Recall', true )
-                    LOG('found an ACU near marker ' .. repr(ArmyName))
-                end
-            end
-        end
-    end
-    return ACUs
-end
-
 local function despawnBeacon(ACU)
     --WARN("despawning beacon, beacon is " .. repr(ACU.ReinforcementsBeacon))
     if ACU.ReinforcementsBeacon and not ACU.ReinforcementsBeacon.Dead then
