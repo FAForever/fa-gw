@@ -5,18 +5,14 @@ local ranks = {
     [3] = {"Su", "Sou", "Soth", "Ithem", "YthiIs", "Ythilsthe", "YthiThuum", "Suythel Cosethuum"},
 }
 
-local oldSetupPlayerLines = SetupPlayerLines
---TODO: For some reason only one of the players displays the correct rank
-function SetupPlayerLines()
-    -- Overrite the player's nickname to include the rank
-    for armyIndex, armyData in GetArmiesTable().armiesTable do
-        local playerName = armyData.nickname
-        local playerRank = sessionInfo.Options.Ranks[playerName]
-        if playerRank then
-            playerName = ranks[armyData.faction][playerRank] .. " " .. playerName
+--GW update displayed name to "Rank AvatarName"
+function updatePlayerName(line)
+    local playerName = line.name:GetText()
+    local playerRank = sessionInfo.Options.Ranks[playerName]
+    for _, armyData in GetArmiesTable().armiesTable do
+        if armyData.nickname == playerName then
+            line.name:SetText(ranks[armyData.faction][playerRank] .. " " .. playerName)
+            break
         end
-        armyData.nickname = playerName
-        --LOG("Player's name update to: " .. playerName)
     end
-    oldSetupPlayerLines()
 end
