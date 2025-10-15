@@ -660,7 +660,7 @@ local function spawnInitialStructures(gwSpawnList, Armies)
     local counter = 1
     for _, List in gwSpawnList do
         for ArmyName, Army in Armies do
-            if tonumber(Army.OwnerId) == List.playerId then
+            if tonumber(Army.OwnerID) == List.playerId then
                 ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(initialStructuresSpawnThread, List, Army)
                 counter = counter + 1
             end
@@ -672,7 +672,7 @@ local function spawnPeriodicReinforcements(gwSpawnList, Armies)
     local counter = 1
     for _, List in gwSpawnList do
         for ArmyName, Army in Armies do
-            if tonumber(Army.OwnerId) == List.playerId then
+            if tonumber(Army.OwnerID) == List.playerId then
                 ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(periodicReinforcementsSpawnThread, List, Army)
                 counter = counter + 1
             end
@@ -684,7 +684,7 @@ local function spawnInitialReinforcements(gwSpawnList, Armies)
     local counter = 1
     for _, List in gwSpawnList do
         for ArmyName, Army in Armies do
-            if tonumber(Army.OwnerId) == List.playerId then
+            if tonumber(Army.OwnerID) == List.playerId then
                 ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(initialReinforcementsSpawnThread, List, Army)
                 counter = counter + 1
             end
@@ -765,7 +765,7 @@ function GwReinforcementsMainThread()
             local units = brain:GetListOfUnits(categories.COMMAND, false) --[[@as CommandUnit]]
             for _, unit in units do
                 brain:AddSpecialAbilityUnit(unit, 'Recall', true)
-                LOG('GW Reinforcements: Found an ACU for army' .. name)
+                LOG('GW Reinforcements: Found an ACU for army: ' .. name)
                 modHumanACU(unit)
             end
         end
