@@ -5,7 +5,7 @@ local SimUtils = import('/lua/SimUtils.lua')
 -- {Number of Tech 3, 2, 1 units that can fit into the transport}
 local TransportInfo = {
     {14, 6, 3, bpID = 'UEA0104'}, -- UEF
-    {12, 6, 2, bpID = 'UAA0104'}, -- Aeon
+    {12, 6, 3, bpID = 'UAA0104'}, -- Aeon
     {10, 4, 2, bpID = 'URA0104'}, -- Cybran
     {16, 8, 4, bpID = 'XSA0104'}, -- Seraphim
 }
