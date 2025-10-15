@@ -5,7 +5,7 @@
 --#**
 --#**  Summary  :  Aeon Quantum Gate Beacon Unit
 --#**
---#**  Copyright © 2005 Gas Powered Games, Inc.  All rights reserved.
+--#**  Copyright ï¿½ 2005 Gas Powered Games, Inc.  All rights reserved.
 --#****************************************************************************
 
 local AStructureUnit = import('/lua/aeonunits.lua').AStructureUnit
@@ -14,8 +14,8 @@ UAB5103 = Class(AStructureUnit) {
     FxTransportBeacon = {'/effects/emitters/red_beacon_light_01_emit.bp'},
     FxTransportBeaconScale = 0.4,
 
-    OnStopBeingBuilt = function(self)
-        AStructureUnit.OnStopBeingBuilt(self)
+    OnStopBeingBuilt = function(self, builder, layer)
+        AStructureUnit.OnStopBeingBuilt(self, builder, layer)
         for k, v in self.FxTransportBeacon do
             self.Trash:Add(CreateAttachedEmitter(self, 0, self:GetArmy(), v):ScaleEmitter(self.FxTransportBeaconScale))
         end

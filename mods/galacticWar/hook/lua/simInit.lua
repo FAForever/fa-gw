@@ -2,7 +2,7 @@ local oldSetupSession = SetupSession
 function SetupSession()
     oldSetupSession()
     -- alter ai teams for galactic War
-    import('/lua/gwReinforcements.lua').assignSupports()
+    import('/lua/gwReinforcements.lua').AssignSupports()
 end
 
 local oldBeginSession = BeginSession
@@ -26,5 +26,5 @@ function BeginSession()
     SetArmyShowScore("SUPPORT_1", false)
     SetArmyShowScore("SUPPORT_2", false)
     
-	ForkThread(import('/lua/gwReinforcements.lua').gwReinforcementsMainThread)
+	ForkThread(import('/lua/gwReinforcements.lua').GwReinforcementsMainThread)
 end

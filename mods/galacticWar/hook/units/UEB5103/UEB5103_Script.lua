@@ -5,7 +5,7 @@
 --#**
 --#**  Summary  :  UEF Quantum Gate Beacon Unit
 --#**
---#**  Copyright © 2005 Gas Powered Games, Inc.  All rights reserved.
+--#**  Copyright ï¿½ 2005 Gas Powered Games, Inc.  All rights reserved.
 --#****************************************************************************
 
 local TStructureUnit = import('/lua/terranunits.lua').TStructureUnit
@@ -14,8 +14,8 @@ UEB5103 = Class(TStructureUnit) {
     FxTransportBeacon = {'/effects/emitters/red_beacon_light_01_emit.bp'},
     FxTransportBeaconScale = 0.4,
 
-    OnStopBeingBuilt = function(self)
-        TStructureUnit.OnStopBeingBuilt(self)
+    OnStopBeingBuilt = function(self, builder, layer)
+        TStructureUnit.OnStopBeingBuilt(self, builder, layer)
         for k, v in self.FxTransportBeacon do
             self.Trash:Add(CreateAttachedEmitter(self, 0, self:GetArmy(), v):ScaleEmitter(self.FxTransportBeaconScale))
         end

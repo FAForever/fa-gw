@@ -6,13 +6,15 @@ local oldOnStartBuild = ACUUnit.OnStartBuild
 local oldOnKilled = ACUUnit.OnKilled
 ---@type ACUUnit
 ACUUnit = Class(oldACUUnit) {
+    ---@param self ACUUnit
 	OnCreate = function(self)
 		oldOnCreate(self)
 
 		self.Idling = true
-        self:ForkThread(self.CheckIdling)
+        --self:ForkThread(self.CheckIdling)
 	end,
 
+    ---@param self ACUUnit
 	CheckIdling = function(self)
         WaitSeconds(20)
         local aiBrain = self:GetAIBrain()
@@ -28,6 +30,7 @@ ACUUnit = Class(oldACUUnit) {
         end
     end,
 
+    ---@param self ACUUnit
     OnStartBuild = function(self, unitBeingBuilt, order)
     	oldOnStartBuild(self, unitBeingBuilt, order)
 

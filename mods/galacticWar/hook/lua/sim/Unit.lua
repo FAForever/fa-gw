@@ -97,7 +97,7 @@ Unit = Class(oldUnit) {
             self:DoUnitCallbacks( 'OnKilled' )
             self:DestroyTopSpeedEffects()
 
-            if self.UnitBeingTeleported and not self.UnitBeingTeleported:IsDead() then
+            if self.UnitBeingTeleported and not self.UnitBeingTeleported.Dead then
                 self.UnitBeingTeleported:Destroy()
                 self.UnitBeingTeleported = nil
             end
@@ -165,7 +165,7 @@ Unit = Class(oldUnit) {
         self:CleanupTeleportChargeEffects()
         
         WaitSeconds( 0.1 )
-        if not self:IsDead() then
+        if not self.Dead then
             self:SetWorkProgress(0.0)
             self:StopUnitAmbientSound('TeleportLoop')
             self:PlayUnitSound('TeleportEnd')
