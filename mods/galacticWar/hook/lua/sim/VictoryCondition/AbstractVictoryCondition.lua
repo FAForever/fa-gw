@@ -4,6 +4,7 @@ do
     local oldAbstractVictoryCondition = AbstractVictoryCondition
     AbstractVictoryCondition = Class(oldAbstractVictoryCondition) {
         DefeatForArmy = function(self, aiBrain)
+            self:FlagBrainAsProcessed(aiBrain)
             self:ToObserver(aiBrain)
             aiBrain:OnDefeat()
 
