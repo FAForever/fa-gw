@@ -1,22 +1,31 @@
 local AbilityDefinition = import('/lua/abilitydefinition.lua').abilities
 
-local oldAIBrain = AIBrain
-local oldOnCreateHuman = AIBrain.OnCreateHuman
+---@type AIBrain
+local oldAIBrain = AIBrain ---@diagnostic disable-line: undefined-global
+local oldOnCreateHuman = oldAIBrain.OnCreateHuman
 
+---@class GwAIBrain: AIBrain
+---@field SpecialAbilities table GW Addition
+---@field SpecialAbilityUnits table GW Addition
+---@field Support boolean Is this a GW support army?
 AIBrain = Class(oldAIBrain) {
+    ---@param self GwAIBrain
+    ---@param planName any
     OnCreateHuman = function(self, planName)
         oldOnCreateHuman(self, planName)
 
-        self.support = false
+        self.Support = false
         self.SpecialAbilities = {}
         self.SpecialAbilityUnits = {}
     end,
 
+    ---@param self GwAIBrain
+    ---@param planName any
     OnCreateAI = function(self, planName)
         self:CreateBrainShared(planName)
 
-        self.SpecialAbilities = {} -- GW Addition
-        self.SpecialAbilityUnits = {} -- GW Addition
+        self.SpecialAbilities = {}
+        self.SpecialAbilityUnits = {}
 
         --LOG('*AI DEBUG: AI planName = ', repr(planName))
         --LOG('*AI DEBUG: SCENARIO AI PLAN LIST = ', repr(aiScenarioPlans))
@@ -25,12 +34,12 @@ AIBrain = Class(oldAIBrain) {
             if name == self.Name then
                 civilian = data.Civilian
                 if data.Support then -- GW Addition
-                    self.support = data.Support
-                end  
+                    self.Support = data.Support
+                end
                 break
             end
         end
-        if not civilian and not self.support then -- GW Addition: and not self.support
+        if not civilian and not self.Support then -- GW Addition: and not self.Support
             local per = ScenarioInfo.ArmySetup[self.Name].AIPersonality
 
             -- Flag this brain as a possible brain to have skirmish systems enabled on
@@ -85,26 +94,30 @@ AIBrain = Class(oldAIBrain) {
         self.BrainType = 'AI'
     end,
 
+    ---@param self GwAIBrain
+    ---@return boolean
     IsSupport = function(self)
-        return self.support
+        return self.Support
     end,
 
+    ---@param self GwAIBrain
     AbandonedByPlayer = function(self)
         if not IsGameOver() then
-            local killacu = self:GetListOfUnits(categories.COMMAND, false)
-            if killacu and table.getn(killacu) > 0 then
-                for index,unit in killacu do
-                    unit:Recall()
-                end
+            ---@type GwACUUnit[]
+            local acus = self:GetListOfUnits(categories.COMMAND, false)
+            for _, unit in pairs(acus) do
+                unit:Recall()
             end
         end
     end,
 
+    ---@param self GwAIBrain
     OnRecall = function(self)
         self:AddArmyStat("Recall", 1)
         self.Recalled = true
     end,
 
+    ---@param self GwAIBrain
     OnAutoRecall = function(self)
         self:SetResult("autorecall")
         self:AddArmyStat("Recall", 1)
@@ -113,17 +126,26 @@ AIBrain = Class(oldAIBrain) {
         self:OnDefeat()
     end,
 
-    AddReinforcements = function(self, list)
+    ---@param self GwAIBrain
+    ---@param group ReinforcementTransportGroup
+    AddReinforcements = function(self, group)
         local army = self:GetArmyIndex()
-        AddReinforcementList(army, list)
-        StartAbilityCoolDown(army, 'CallReinforcement_' .. list.group)
+        AddReinforcementList(army, group)
+        StartAbilityCoolDown(army, 'CallReinforcement_' .. group.group)
     end,
 
+    ---@param self GwAIBrain
+    ---@param group integer
+    ---@param groupId integer
     ReinforcementsCalled = function(self, group, groupId)
         DisableSpecialAbility(self:GetArmyIndex(), 'CallReinforcement_' .. group)
         table.insert(Sync.ReinforcementCalled, {self:GetArmyIndex(), groupId })
     end,
 
+    ---@param self GwAIBrain
+    ---@param unit Unit
+    ---@param type string
+    ---@param autoEnable boolean
     AddSpecialAbilityUnit = function(self, unit, type, autoEnable)
         local unitId = unit:GetEntityId()
         if AbilityDefinition[type] then
@@ -140,6 +162,10 @@ AIBrain = Class(oldAIBrain) {
         end
     end,
 
+    ---@param self GwAIBrain
+    ---@param unit Unit
+    ---@param type string
+    ---@param autoDisable boolean
     RemoveSpecialAbilityUnit = function(self, unit, type, autoDisable)
         if self.SpecialAbilityUnits[type] then
             local unitId = unit:GetEntityId()
@@ -152,10 +178,13 @@ AIBrain = Class(oldAIBrain) {
         end
     end,
 
+    ---@param self GwAIBrain
+    ---@param type string
+    ---@param enable boolean
     EnableSpecialAbility = function(self, type, enable)
         if AbilityDefinition[type].enabled == false then
             WARN('Ability "' .. repr(type) .. '" is disabled in abilitydefinition file')
-            return false
+            return
         else
             if not self.SpecialAbilities[type] then
                 self.SpecialAbilities[type] = {}
@@ -181,9 +210,12 @@ AIBrain = Class(oldAIBrain) {
         end
     end,
 
+    ---@param self GwAIBrain
+    ---@param type string
+    ---@return Unit[]
     GetSpecialAbilityUnits = function(self, type)
+        local units = {}
         if self.SpecialAbilityUnits[type] then
-            local units = {}
             local remove = {}
 
             -- compile list of units in this type of special ability
@@ -200,22 +232,33 @@ AIBrain = Class(oldAIBrain) {
             for k, v in remove do
                 table.removeByValue(self.SpecialAbilityUnits[type], v)
             end
-
-            return units
         end
+        return units
     end,
 
+    ---@param self GwAIBrain
+    ---@param type any
+    ---@return unknown
     GetSpecialAbilityUnitIds = function(self, type)
         self:GetSpecialAbilityUnits(type)  -- only for cleaning up the table, not interested in the results of this call
         return self.SpecialAbilityUnits[type]
     end,
 
+    ---@param self GwAIBrain
+    ---@param type any
+    ---@return boolean
     IsSpecialAbilityEnabled = function(self, type)
         if self.SpecialAbilities[type] then
             return self.SpecialAbilities[type]['enabled']
         end
+        return false
     end,
 
+    ---@param self GwAIBrain
+    ---@param type any
+    ---@param parameter any
+    ---@param value any
+    ---@return unknown
     SetSpecialAbilityParam = function(self, type, parameter, value)
         -- set and/or change a parameter for the special ability. Returns old value (could be nil if previously not set)
         if parameter ~= 'enabled' then
@@ -231,6 +274,11 @@ AIBrain = Class(oldAIBrain) {
         end
     end,
 
+    ---@param self GwAIBrain
+    ---@param type any
+    ---@param param1 any
+    ---@param param2 any
+    ---@return unknown
     GetSpecialAbilityParam = function(self, type, param1, param2)
         local r
         if type and param1 and self.SpecialAbilities[type][param1] then
@@ -243,6 +291,8 @@ AIBrain = Class(oldAIBrain) {
         return r
     end,
 
+    ---@param self GwAIBrain
+    ---@return table
     GetStartVector3f = function(self)
         local startX, startZ = self:GetArmyStartPos()
         return {startX, 0, startZ}

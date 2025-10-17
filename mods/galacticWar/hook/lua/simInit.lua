@@ -21,10 +21,10 @@ function BeginSession()
         elseif army.Faction == 4 then
             ScenarioFramework.SetSeraphimColor(army.ArmyIndex)
         end
-    end    
+    end
 
     SetArmyShowScore("SUPPORT_1", false)
     SetArmyShowScore("SUPPORT_2", false)
-    
+
 	ForkThread(import('/lua/gwReinforcements.lua').GwReinforcementsMainThread)
 end

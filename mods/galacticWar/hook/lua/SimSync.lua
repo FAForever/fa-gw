@@ -1,3 +1,5 @@
+---@declare-global
+
 local fafResetSyncTable = ResetSyncTable
 
 ResetSyncTable = function()
@@ -15,13 +17,14 @@ ResetSyncTable = function()
     Sync.RemoveInitialUnit = {}
     Sync.SetAbilityUnits = {}
     Sync.SetAbilityRangeCheckUnits = {}
-    Sync.RemoveStaticDecal = {}	
+    Sync.RemoveStaticDecal = {}
 end
 
-function AddReinforcementList (army, list)
-    if army ~= nil and list then
-		LOG("adding reinforcement!")
-        table.insert(Sync.AddReinforcementList, { List = list, Army = army })
+---@param army integer
+---@param group ReinforcementTransportGroup
+function AddReinforcementList(army, group)
+    if army ~= nil and group then
+        table.insert(Sync.AddReinforcementList, { List = group, Army = army })
     end
 end
 

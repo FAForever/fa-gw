@@ -1,8 +1,12 @@
 local ScenarioUtils = import('/lua/sim/ScenarioUtilities.lua')
 local ScenarioFramework = import('/lua/ScenarioFramework.lua')
+local ScenarioTriggers = import('/lua/scenariotriggers.lua')
 local SimUtils = import('/lua/SimUtils.lua')
 local Utilities = import('/lua/utilities.lua')
+---@type ReinforcementList
+local ReinforcementList =  import('/lua/gwReinforcementList.lua').gwReinforcements
 
+local pairs, ipairs = pairs, ipairs
 local GetArmyBrain = GetArmyBrain
 local Random = Random
 local WaitSeconds = WaitSeconds
@@ -20,6 +24,60 @@ local armySupportIndex = {}
 
 local factions = {1, 1}
 local teams = {-1, -1}
+
+---@class ReinforcementGroupBase
+---@field playerId integer
+---@field playerName string
+---@field avatarName string
+---@field delay integer Delay in second before this group can be used
+---@field unitNames BlueprintId[] List of units this group contains
+
+---@class ReinforcementInitialStructuresGroup: ReinforcementGroupBase
+
+---@class ReinforcementInitialUnitsGroup: ReinforcementGroupBase
+
+---@class ReinforcementPeriodicGroup: ReinforcementGroupBase
+---@field period integer Period in second between respawning the group
+
+---@class ReinforcementTransportGroup: ReinforcementGroupBase
+---@field delay integer Delay in second before it can be called
+---@field groupId integer Unique ID of a group
+---@field called boolean Whenever this group was already used or not
+---@field group integer Index of the group of player's group
+
+---@class ReinforcementList
+---@field initialStructure ReinforcementInitialStructuresGroup[]
+---@field initialUnitWarp ReinforcementInitialUnitsGroup[]
+---@field periodicUnitWarp ReinforcementPeriodicGroup[]
+---@field passiveItems table
+---@field transportedUnits ReinforcementTransportGroup[]
+
+
+---@class GwBeaconUnit: StructureUnit
+---@field ACU GwACUUnit
+---@field Faction integer
+---@field Team integer
+---@field NearestOffMapLocation Vector
+
+---@class GwACUUnit: ACUUnit
+---@field ReinforcementsBeacon GwBeaconUnit?
+---@field ReinforcementTransportGroups ReinforcementTransportGroup[]
+
+---@alias ArmySetup table<string, ArmyInfo>
+
+---@class ArmyInfo
+---@field ArmyColor integer
+---@field ArmyIndex integer
+---@field ArmyName string
+---@field Civilian boolean
+---@field Faction integer
+---@field Human boolean
+---@field OwnerID string PeerId (faf_id or gw_player_id) as string
+---@field PlayerColor integer
+---@field PlayerName string
+---@field Support boolean
+---@field Team integer
+
 
 ---@param unit Unit
 local function spawnOutEffect(unit)
@@ -41,16 +99,11 @@ local function spawnOutEffect(unit)
     unit:Destroy()
 end
 
----@param unit Unit
----@param point Vector
----@param tolerance? number Defaults to 5
----@return boolean
-local function isUnitCloseToPoint(unit, point, tolerance)
-    tolerance = tolerance or 5
-    local position = unit:GetPosition()
-    return Utilities.GetDistanceBetweenTwoPoints2(position[1], position[3], point[1], point[3]) < tolerance
-end
+local DespawnDistanceTollerance = 10
 
+---Returns a nearest position to the offmap area for given beacon
+---@param beacon GwBeaconUnit
+---@return Vector
 local function calculateNearestOffMapLocation(beacon)
     local PlayableArea = ScenarioInfo.PlayableArea
     if not PlayableArea then
@@ -119,62 +172,27 @@ local function callTransportToCarryMeAway(self, transportBPid)
     transport.CanTakeDamage = false
     transport:SetUnSelectable(true)
     transport:SetDoNotTarget(true)
-    self.myTransport = transport
 
     IssueTransportLoad({self}, transport)
     IssueMove({transport}, NearestOffMapLocation)
 
     WaitSeconds(10)
 
-    while not transport.Dead and not isUnitCloseToPoint(transport, NearestOffMapLocation) do
-        WaitSeconds(2)
-    end
-
-    if transport.Dead then
-        return
-    else
-        spawnOutEffect(transport)
-    end
+    ScenarioTriggers.CreateUnitToPositionDistanceTrigger(spawnOutEffect, transport, NearestOffMapLocation, DespawnDistanceTollerance)
 end
 
-local function remindMyTransportToPickMeUp(self, transport)
-    IssueClearCommands(self)
-    IssueTransportLoad({self},transport)
-
-    local NearestOffMapLocation = calculateNearestOffMapLocation(self)
-
-    IssueMove({self}, NearestOffMapLocation)
-    WaitSeconds(2)
-
-    IssueMove({transport}, NearestOffMapLocation)
-
-    WaitSeconds(10)
-
-    while not transport.Dead and not isUnitCloseToPoint(transport,NearestOffMapLocation) do
-        WaitSeconds(2)
-    end
-
-    if transport.Dead then
-        return
-    else
-        spawnOutEffect(transport)
-    end
-end
-
-local function modEngineer(engineer, transportBPid, beacon)
+---@param engineer ConstructionUnit
+---@param transportBpId BlueprintId
+local function modEngineer(engineer, transportBpId)
     engineer.CanIBuild = true
-    engineer.transportBPid = transportBPid
+    engineer.transportBPid = transportBpId
     engineer.OldOnStopBuild = engineer.OnStopBuild
     engineer.CallTransportToCarryMeAway = callTransportToCarryMeAway
-    engineer.spawnOutEffect = spawnOutEffect
-    engineer.RemindMyTransportToPickMeUp = remindMyTransportToPickMeUp
     engineer.OnStopBuild = function(self, unitBeingBuilt)
-        SimUtils.TransferUnitsOwnership({unitBeingBuilt}, self.PlayerArmyName)
+        SimUtils.TransferUnitsOwnership({unitBeingBuilt}, self.TransferToArmyId --[[@as integer]])
         if not self.HaveCalledTransport then
             self.HaveCalledTransport = true
             self:ForkThread(self.CallTransportToCarryMeAway, self.transportBPid)
-        else
-            --self:ForkThread(self.RemindMyTransportToPickMeUp, self.myTransport)
         end
         self.OldOnStopBuild(self,unitBeingBuilt)
     end
@@ -182,31 +200,31 @@ local function modEngineer(engineer, transportBPid, beacon)
     engineer.OnStartBuild = function(self, unitBeingBuilt, order)
         if not self.CanIBuild then 
             unitBeingBuilt:Destroy()
-            --IssueClearCommands(self)
-            --self:OnStopBuild(unitBeingBuilt)
-            --self.spawnOutThread = self:ForkThread(self.spawnOutEffect)
-            --self:ForkThread(self.RemindMyTransportToPickMeUp,self.myTransport)
-        --   return
         end
         self.CanIBuild = false
-        --unitBeingBuilt:SetUnSelectable(true)
         self.OldOnStartBuild(self, unitBeingBuilt, order)
-        --engineer:SetActiveConsumptionInactive()
     end
 end
 
+---@param EngineerBPid BlueprintId
+---@param StructureBPid BlueprintId
+---@param TransportBPid BlueprintId
+---@param BuildLocation Vector
+---@param beacon GwBeaconUnit
+---@param group integer
+---@param groupId integer
 local function spawnEngineerAndTransportAndBuildTheStructure(EngineerBPid, StructureBPid, TransportBPid, BuildLocation, beacon, group, groupId)
-    local NearestOffMapLocation = calculateNearestOffMapLocation(beacon)
-    local engineer = CreateUnitHPR(EngineerBPid, armySupport[beacon.Team], NearestOffMapLocation[1], NearestOffMapLocation[2], NearestOffMapLocation[3],0,0,0)
+    local position = calculateNearestOffMapLocation(beacon)
+    local engineer = CreateUnitHPR(EngineerBPid, armySupport[beacon.Team], position[1], position[2], position[3],0,0,0) --[[@as ConstructionUnit]]
     engineer.ArmyName = armySupport[beacon.Team]
-    engineer.PlayerArmyName = beacon.ArmyIndex
+    engineer.TransferToArmyId = beacon.Army
     engineer:SetProductionActive(true)
     WaitSeconds(0.1)
     engineer:SetProductionPerSecondEnergy(10000)
     engineer:SetProductionPerSecondMass(500)
     WaitSeconds(0.1)
 
-    local transport = CreateUnitHPR(TransportBPid, armySupport[beacon.Team], NearestOffMapLocation[1], NearestOffMapLocation[2], NearestOffMapLocation[3],0,0,0)
+    local transport = CreateUnitHPR(TransportBPid, armySupport[beacon.Team], position[1], position[2], position[3],0,0,0)
     local aiBrain = engineer:GetAIBrain()
     local Transports = aiBrain:MakePlatoon('', '')
     aiBrain:AssignUnitsToPlatoon(Transports, {transport}, 'Support', 'None')
@@ -234,57 +252,31 @@ local function spawnEngineerAndTransportAndBuildTheStructure(EngineerBPid, Struc
     WaitSeconds(5)
 
     if not transport.Dead then
-        Transports:MoveToLocation(NearestOffMapLocation, false)
+        Transports:MoveToLocation(position, false)
     end
 
     if not engineer.Dead then
         aiBrain:BuildStructure(engineer, StructureBPid, BuildLocation)
-        modEngineer(engineer, TransportBPid, beacon)
+        modEngineer(engineer, TransportBPid)
     end
 
-    while not transport.Dead and not isUnitCloseToPoint(transport, NearestOffMapLocation) do
-        WaitSeconds(2)
-    end
-
-    if transport.Dead then
-        return
-    else
-        spawnOutEffect(transport)
-    end
+    ScenarioTriggers.CreateUnitToPositionDistanceTrigger(spawnOutEffect, transport, position, DespawnDistanceTollerance)
 end
 
-local function spawnBuildByEngineerReinforcements(beacon, StructuresToBuild, group, groupId)
-    local EngineersToSpawnAndOrdersAndTransport = {}
-    local NearestOffMapLocation = beacon.NearestOffMapLocation 
-    local counter = 0
-
-    for index, structureName in StructuresToBuild do
-        if GetUnitBlueprintByName(structureName).General.FactionName == 'Aeon' then
-            table.insert(EngineersToSpawnAndOrdersAndTransport, {'UAL0309',structureName, 'UAA0107'})
-        elseif GetUnitBlueprintByName(structureName).General.FactionName == 'UEF' then
-            table.insert(EngineersToSpawnAndOrdersAndTransport, {'UEL0309',structureName, 'UEA0107'})
-        elseif GetUnitBlueprintByName(structureName).General.FactionName == 'Cybran' then
-            table.insert(EngineersToSpawnAndOrdersAndTransport, {'URL0309',structureName, 'URA0107'})
-        elseif GetUnitBlueprintByName(structureName).General.FactionName == 'Seraphim' then
-            table.insert(EngineersToSpawnAndOrdersAndTransport, {'XSL0309',structureName, 'XSA0107'})
-        end
-    end
-
-    for _, EngineerStructureTransportSet in EngineersToSpawnAndOrdersAndTransport do
-        counter = counter + 1
-        local BuildLocation = calculateBuildLocationByCounterAndPosition(counter, beacon:GetPosition())
-        ForkThread(spawnEngineerAndTransportAndBuildTheStructure,EngineerStructureTransportSet[1], EngineerStructureTransportSet[2], EngineerStructureTransportSet[3], BuildLocation, beacon, group, groupId)
-    end
-end
-
-local function spawnTransportAndIssueDrop(transportBPid, units, NearestOffMapLocation, beacon, group, groupId)
+---@param transportBpId BlueprintId
+---@param units Unit[]
+---@param NearestOffMapLocation Vector
+---@param beacon GwBeaconUnit
+---@param group integer
+---@param groupId integer
+local function spawnTransportAndIssueDrop(transportBpId, units, NearestOffMapLocation, beacon, group, groupId)
     --WARN('spawning transport, bpid and army are ' .. repr(transportBPid) .. ' and ' .. repr(beacon.ArmyName))
-    local transport = CreateUnitHPR(transportBPid, armySupport[beacon.Team], NearestOffMapLocation[1], NearestOffMapLocation[2], NearestOffMapLocation[3], 0, 0, 0)
+    local transport = CreateUnitHPR(transportBpId, armySupport[beacon.Team], NearestOffMapLocation[1], NearestOffMapLocation[2], NearestOffMapLocation[3], 0, 0, 0)
 
     transport.OldOnTransportDetach = transport.OnTransportDetach
 
     transport.OnTransportDetach = function(self, attachBone, unit)
-        SimUtils.TransferUnitsOwnership( {unit}, beacon.ArmyIndex)
+        SimUtils.TransferUnitsOwnership( {unit}, beacon.Army--[[@as integer]])
         self.OldOnTransportDetach(self, attachBone, unit)
     end 
 
@@ -321,44 +313,37 @@ local function spawnTransportAndIssueDrop(transportBPid, units, NearestOffMapLoc
         Transports:MoveToLocation(NearestOffMapLocation, false)
     end
 
-    while not transport.Dead and not isUnitCloseToPoint(transport,NearestOffMapLocation) do
-        WaitSeconds(2)
-    end
-    
-    if transport.Dead then
-        return
-    else
-        spawnOutEffect(transport)
-    end
+    ScenarioTriggers.CreateUnitToPositionDistanceTrigger(spawnOutEffect, transport, NearestOffMapLocation, DespawnDistanceTollerance)
 end
 
-local function spawnTransportedReinforcements(beacon, unitsToSpawn, group, groupId)
-    WARN('Spawningtransported Reinforcements')
-    local NearestOffMapLocation = beacon.NearestOffMapLocation 
-    local UnitsToTransport = {}
-    UnitsToTransport[1] = {}
-    UnitsToTransport[2] = {}
-    UnitsToTransport[3] = {}
+---@param beacon GwBeaconUnit
+---@param bpIds BlueprintId[]
+---@param group integer
+---@param groupId integer
+local function spawnTransportedReinforcements(beacon, bpIds, group, groupId)
+    local NearestOffMapLocation = beacon.NearestOffMapLocation
+    ---@type Unit[][]
+    local UnitsToTransport = {
+        {},
+        {},
+        {}
+    }
+
     local NumberOfTransportsNeeded = 0
 
     --this spawns our units
-    for _, unitBPid in unitsToSpawn do
-        --WARN('spawning reinforcement unit bpid is ' .. repr(unitBPid))
-        --WARN('spawning beacon.ArmyName unit bpid is ' .. repr(beacon.ArmyIndex))
-        
-        --get the right support AI for this player
-
-        local newUnit = CreateUnitHPR(unitBPid, armySupport[beacon.Team], NearestOffMapLocation[1], NearestOffMapLocation[2], NearestOffMapLocation[3], 0, 0, 0)
+    for _, bpId in ipairs(bpIds) do
+        local newUnit = CreateUnitHPR(bpId, armySupport[beacon.Team], NearestOffMapLocation[1], NearestOffMapLocation[2], NearestOffMapLocation[3], 0, 0, 0)
         local TransportClass = newUnit:GetBlueprint().Transport.TransportClass
         table.insert(UnitsToTransport[TransportClass], newUnit)
     end
 
     --this should spawn transports and attach untis to them
-    for TechLevel = 1, 3, 1 do
-        local TransportCapacity = TransportInfo[beacon.Faction][TechLevel]
+    for techLevel = 1, 3 do
+        local TransportCapacity = TransportInfo[beacon.Faction][techLevel]
         local counter = 0
         local LoadForThisTransport = {}
-        for index, unit in UnitsToTransport[TechLevel] do
+        for _, unit in ipairs(UnitsToTransport[techLevel]) do
             counter = counter + 1
             table.insert(LoadForThisTransport, unit)
             --if we reached max load for one transport, spawn it, load unit, set orders, start counting again 
@@ -366,7 +351,7 @@ local function spawnTransportedReinforcements(beacon, unitsToSpawn, group, group
                 ForkThread(spawnTransportAndIssueDrop, TransportInfo[beacon.Faction].bpID, LoadForThisTransport, NearestOffMapLocation, beacon, group, groupId)
                 counter = 0
                 LoadForThisTransport = {}
-            end 
+            end
         end
         --this is to make sure we spawn a transport even if we don't have enough units to completely fill one up'
         if counter > 0 then
@@ -378,50 +363,49 @@ local function spawnTransportedReinforcements(beacon, unitsToSpawn, group, group
     --there doesn't appear to be a way to do this quickly, so we're just going to add 1 for every 2 class 3 units, 1 for every 6 class 2 units, and 1 for every 12 class 1 units
 end
 
-local function callEngineersToBeacon(beacon, List, group, groupId)
+---@param beacon GwBeaconUnit
+---@param bpIds BlueprintId[]
+---@param group integer
+---@param groupId integer
+local function callEngineersToBeacon(beacon, bpIds, group, groupId)
     --bring in units + engineers + etc
-    --[[
-    beacon.Army = nil
-    for _, Army in ListArmies() do
-       if beacon.ArmyIndex == Army.ArmyIndex then
-           beacon.Army = Army
-           WARN("found army for our beacon!")
-       end
-    end
-    --]]
     beacon.AiBrain = beacon:GetAIBrain()
-    beacon.Nickname = beacon.AiBrain.Nickname
     beacon.ArmyName = beacon.AiBrain.Name
     beacon.Team = ScenarioInfo.ArmySetup[beacon.ArmyName].Team
 
-    beacon.StructureReinforcementsToCall = List
-
     beacon.NearestOffMapLocation = calculateNearestOffMapLocation(beacon)
 
-    WARN('beacon.StructureReinforcementsToCall is ' .. repr(beacon.StructureReinforcementsToCall))
-    if beacon.StructureReinforcementsToCall then
-        spawnBuildByEngineerReinforcements(beacon, beacon.StructureReinforcementsToCall, group, groupId)
+    local EngineersToSpawnAndOrdersAndTransport = {}
+
+    for _, sbpId in ipairs(bpIds) do
+        if GetUnitBlueprintByName(sbpId).General.FactionName == 'Aeon' then
+            table.insert(EngineersToSpawnAndOrdersAndTransport, {'UAL0309',sbpId, 'UAA0107'})
+        elseif GetUnitBlueprintByName(sbpId).General.FactionName == 'UEF' then
+            table.insert(EngineersToSpawnAndOrdersAndTransport, {'UEL0309',sbpId, 'UEA0107'})
+        elseif GetUnitBlueprintByName(sbpId).General.FactionName == 'Cybran' then
+            table.insert(EngineersToSpawnAndOrdersAndTransport, {'URL0309',sbpId, 'URA0107'})
+        elseif GetUnitBlueprintByName(sbpId).General.FactionName == 'Seraphim' then
+            table.insert(EngineersToSpawnAndOrdersAndTransport, {'XSL0309',sbpId, 'XSA0107'})
+        end
+    end
+
+    for i, data in ipairs(EngineersToSpawnAndOrdersAndTransport) do
+        local BuildLocation = calculateBuildLocationByCounterAndPosition(i, beacon:GetPosition())
+        ForkThread(spawnEngineerAndTransportAndBuildTheStructure,data[1], data[2], data[3], BuildLocation, beacon, group, groupId)
     end
 end
 
-local function callReinforcementsToBeacon(beacon, List, group, groupId)
-    --bring in units + engineers + etc
-    --[[
-    beacon.Army = nil
-    for _, Army in ListArmies() do
-       if beacon.ArmyIndex == Army.ArmyIndex then
-           beacon.Army = Army
-           WARN("found army for our beacon!")
-       end
-    end
-    --]]
+---@param beacon GwBeaconUnit
+---@param bpIds BlueprintId[]
+---@param group integer
+---@param groupId integer
+local function callReinforcementsToBeacon(beacon, bpIds, group, groupId)
     beacon.AiBrain = beacon:GetAIBrain()
-    beacon.Nickname = beacon.AiBrain.Nickname
     beacon.ArmyName = beacon.AiBrain.Name
     beacon.Team = ScenarioInfo.ArmySetup[beacon.ArmyName].Team
     --WARN('gwReinforcementList.TransportedUnits is ' .. repr(ScenarioInfo.gwReinforcementList.transportedUnits))
 
-    beacon.UnitReinforcementsToCall = List
+    beacon.UnitReinforcementsToCall = bpIds
 
     beacon.NearestOffMapLocation = calculateNearestOffMapLocation(beacon)
     --WARN('beacon.UnitReinforcementsToCall is ' .. repr(beacon.UnitReinforcementsToCall))
@@ -430,15 +414,12 @@ local function callReinforcementsToBeacon(beacon, List, group, groupId)
     end
 end
 
+---Deletes the reinforcement beacon if it exists
+---@param ACU GwACUUnit
 local function despawnBeacon(ACU)
-    --WARN("despawning beacon, beacon is " .. repr(ACU.ReinforcementsBeacon))
     if ACU.ReinforcementsBeacon and not ACU.ReinforcementsBeacon.Dead then
-        if ACU.ReinforcementsBeacon.EvacTruck and not ACU.ReinforcementsBeacon.EvacTruck.Dead then 
-            ACU.ReinforcementsBeacon.EvacTruck:SetUnSelectable(false)
-        end
-
         local BeaconPosition = ACU.ReinforcementsBeacon:GetPosition()
-        local TeleportToPosition = {-1000 ,BeaconPosition[2] ,-1000}  --far off-map
+        local TeleportToPosition = {-1000, BeaconPosition[2], -1000}  --far off-map
 
         ACU.ReinforcementsBeacon:PlayTeleportOutEffects()
         Warp(ACU.ReinforcementsBeacon, TeleportToPosition, ACU.ReinforcementsBeacon:GetOrientation())
@@ -448,9 +429,9 @@ local function despawnBeacon(ACU)
     ACU.ReinforcementsBeacon = nil
 end
 
----@param ACU CommandUnit
+---@param ACU GwACUUnit
+---@param beacon GwBeaconUnit
 local function modBeacon(ACU, beacon)
-    beacon.ArmyIndex  = ACU:GetArmy()
     beacon.ACU = ACU
     if EntityCategoryContains(categories.UEF, ACU) then
         beacon.Faction = 1
@@ -462,44 +443,44 @@ local function modBeacon(ACU, beacon)
         beacon.Faction = 4
     end
 
+    ---@param self GwBeaconUnit
+    ---@param index integer
     beacon.Deploy = function(self, index)
         LOG("deploying index " .. index)
 
         local toRemove = {}
         curTime = GetGameTimeSeconds()
-        for idx, List in self.ACU.unitsDelays do
-            if List.group == index and List.delay <= curTime then
-                Units = {}
-                Buildings = {}
+        for i, group in pairs(self.ACU.ReinforcementTransportGroups) do
+            if group.group == index and group.delay <= curTime then
+                ---@type BlueprintId[]
+                local mobileUnits = {}
+                ---@type BlueprintId[]
+                local structures = {}
                 -- split between units & building
-                for index, unitBPid in List.unitNames do
-                    bp = GetUnitBlueprintByName(unitBPid)
-                    if bp.Categories then
-                        local cats = {} 
-                        for k,cat in pairs(bp.Categories) do
-                            cats[cat] = true
-                        end                         
-                        if cats.STRUCTURE then
-                            table.insert(Buildings, unitBPid)
+                for _, bpId in ipairs(group.unitNames) do
+                    local bp = GetUnitBlueprintByName(bpId)
+                    if bp.CategoriesHash then
+                        if bp.CategoriesHash["STRUCTURE"] then
+                            table.insert(structures, bpId)
                         else
-                            table.insert(Units, unitBPid)
+                            table.insert(mobileUnits, bpId)
                         end
                     end
                 end
 
-                if table.getn(Units) > 0 then
-                    callReinforcementsToBeacon(self, Units, List.group, List.groupId)
+                if table.getn(mobileUnits) > 0 then
+                    callReinforcementsToBeacon(self, mobileUnits, group.group, group.groupId)
                 end
 
-                if table.getn(Buildings) > 0 then
-                    callEngineersToBeacon(self, Buildings, List.group, List.groupId)
+                if table.getn(structures) > 0 then
+                    callEngineersToBeacon(self, structures, group.group, group.groupId)
                 end
-                table.insert(toRemove, idx)
+                table.insert(toRemove, i)
             end
         end
 
         for _, idx in toRemove do
-            table.remove(self.ACU.unitsDelays, idx)
+            table.remove(self.ACU.ReinforcementTransportGroups, idx)
         end
     end
 end
@@ -529,10 +510,10 @@ local function checkPassiveItems(ACU)
 end
 
 ---this function check all the units delay to spawn them.
----@param ACU CommandUnit
+---@param ACU GwACUUnit
 local function checkUnitsDelay(ACU)
-    ACU.unitsDelays = {}
-    local brain = ACU:GetAIBrain()
+    ACU.ReinforcementTransportGroups = {}
+    local brain = ACU:GetAIBrain() --[[@as GwAIBrain]]
     local playerId
 
     for ArmyName, Army in ScenarioInfo.ArmySetup do
@@ -542,15 +523,15 @@ local function checkUnitsDelay(ACU)
         end
     end
 
-    for _, List in ScenarioInfo.gwReinforcementList.transportedUnits do
-        if List.playerId == playerId then
-            brain:AddReinforcements(List)
-            table.insert(ACU.unitsDelays, List)
+    for _, group in ipairs(ScenarioInfo.gwReinforcementList.transportedUnits) do
+        if group.playerId == playerId then
+            brain:AddReinforcements(group)
+            table.insert(ACU.ReinforcementTransportGroups, group)
         end
     end
 end
 
----@param ACU CommandUnit
+---@param ACU GwACUUnit
 local function modHumanACU(ACU)
     ACU.OldOnStartBuild = ACU.OnStartBuild
     ACU.DespawnBeacon = despawnBeacon
@@ -567,19 +548,22 @@ local function modHumanACU(ACU)
     checkPassiveItems(ACU)
 end
 
-local function initialStructuresSpawnThread(List, Army)
-    local delay = List.delay
-    local UnitsToSpawn = List.unitNames
+---Spawn an initial reinforcement structure for army
+---@param group ReinforcementInitialStructuresGroup
+---@param armyInfo ArmyInfo
+local function initialStructuresSpawnThread(group, armyInfo)
+    local delay = group.delay
+    local bpIds = group.unitNames
 
-    local aiBrain = GetArmyBrain(Army.ArmyIndex)
+    local aiBrain = GetArmyBrain(armyInfo.ArmyIndex)
     local posX, posY = aiBrain:GetArmyStartPos()
 
     WaitSeconds(1)
 
-    for _, v in UnitsToSpawn do
-        local unit = aiBrain:CreateUnitNearSpot(v, posX, posY) --[[@as StructureUnit]]
+    for _, bpId in ipairs(bpIds) do
+        local unit = aiBrain:CreateUnitNearSpot(bpId, posX, posY) --[[@as StructureUnit]]
         if not unit then
-            WARN(string.format("GW Reinforcements: Failed to create unit: %s for army: %s", v, tostring(aiBrain.Army)))
+            WARN(string.format("GW Reinforcements: Failed to create initial strucure: %s for army: %s", bpId, tostring(aiBrain.Army)))
             continue
         end
         unit:SetReclaimable(false)
@@ -601,96 +585,112 @@ local function initialStructuresSpawnThread(List, Army)
     end
 end
 
-local function periodicReinforcementsSpawnThread(List, Army)
-    local position = ScenarioUtils.MarkerToPosition(Army.ArmyName)
-    local delay = List.delay
-    local period = List.period
-    local UnitsToSpawn = List.unitNames
-
-    WaitSeconds(delay)
-
-    while not ArmyIsOutOfGame(Army.ArmyIndex) do
-        for _, unitName in UnitsToSpawn do
-            local NewUnit = CreateUnitHPR(unitName, Army.ArmyIndex, position[1], position[2], (position[3]), 0, 0, 0)
-            NewUnit:PlayTeleportInEffects()
-            NewUnit:CreateProjectile('/effects/entities/UnitTeleport01/UnitTeleport01_proj.bp', 0, 1.35, 0, nil, nil, nil):SetCollision(false)
+---Spaws all initial reinforcement structures for all armies
+---@param structureGroups ReinforcementInitialStructuresGroup[]
+---@param armySetup ArmySetup
+local function spawnInitialStructures(structureGroups, armySetup)
+    for _, group in ipairs(structureGroups) do
+        for _, armyInfo in pairs(armySetup) do
+            if tonumber(armyInfo.OwnerID) == group.playerId then
+                ForkThread(initialStructuresSpawnThread, group, armyInfo)
+            end
         end
+    end
+end
+
+---@param bpIds BlueprintId[]
+---@param armyId Army
+---@param position Vector
+local function spawnUnitsWithTeleportInEffect(bpIds, armyId, position)
+    for _, bpId in ipairs(bpIds) do
+        local NewUnit = CreateUnitHPR(bpId, armyId, position[1], position[2], position[3], 0, 0, 0)
+        NewUnit:PlayTeleportInEffects()
+        NewUnit:CreateProjectile('/effects/entities/UnitTeleport01/UnitTeleport01_proj.bp', 0, 1.35, 0, nil, nil, nil):SetCollision(false)
+    end
+end
+
+---Spawn a reinforcement units periodically after their set delay
+---@param group ReinforcementPeriodicGroup
+---@param armyInfo ArmyInfo
+local function periodicReinforcementsSpawnThread(group, armyInfo)
+    local delay = group.delay
+    if delay > 0 then
+        WaitSeconds(delay)
+    end
+
+    local position = ScenarioUtils.MarkerToPosition(armyInfo.ArmyName)
+    local period = group.period
+    local bpIds = group.unitNames
+    local armyIndex = armyInfo.ArmyIndex
+
+    while not ArmyIsOutOfGame(armyIndex) do
+        spawnUnitsWithTeleportInEffect(bpIds, armyIndex, position)
+
         WaitSeconds(period)
     end
 end
 
-local function initialReinforcementsSpawnThread(List, Army)
-    local position = ScenarioUtils.MarkerToPosition(Army.ArmyName)
-    local delay = List.delay
-    --local period = List.period
-    local UnitsToSpawn = List.unitNames
-
-    WaitSeconds(delay)
-
-    --while not ArmyIsOutOfGame(Army.ArmyIndex) do
-        for _, unitName in UnitsToSpawn do
-            local NewUnit = CreateUnitHPR(unitName, Army.ArmyIndex, position[1], position[2], (position[3]), 0, 0, 0)
-            NewUnit:PlayTeleportInEffects()
-            NewUnit:CreateProjectile( '/effects/entities/UnitTeleport01/UnitTeleport01_proj.bp', 0, 1.35, 0, nil, nil, nil):SetCollision(false)
-        end
-    --   WaitSeconds(period)
-    --end
-end
-
-local function spawnInitialStructures(gwSpawnList, Armies)
-    local counter = 1
-    for _, List in gwSpawnList do
-        for ArmyName, Army in Armies do
-            if tonumber(Army.OwnerID) == List.playerId then
-                ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(initialStructuresSpawnThread, List, Army)
-                counter = counter + 1
+---Starts spawning periodical reinforcment units for all armies with teleport in effect
+---@param unitGroups ReinforcementPeriodicGroup[]
+---@param armySetup ArmySetup
+local function spawnPeriodicReinforcements(unitGroups, armySetup)
+    local i = 1
+    for _, group in ipairs(unitGroups) do
+        for _, armyInfo in pairs(armySetup) do
+            if tonumber(armyInfo.OwnerID) == group.playerId then
+                ScenarioInfo.GwReinforcementSpawnThreads[i] = ForkThread(periodicReinforcementsSpawnThread, group, armyInfo)
+                i = i + 1
             end
         end
     end
 end
 
-local function spawnPeriodicReinforcements(gwSpawnList, Armies)
-    local counter = 1
-    for _, List in gwSpawnList do
-        for ArmyName, Army in Armies do
-            if tonumber(Army.OwnerID) == List.playerId then
-                ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(periodicReinforcementsSpawnThread, List, Army)
-                counter = counter + 1
+---Spawn an initial reinforcement units after their set delay
+---@param group ReinforcementInitialUnitsGroup
+---@param armyInfo ArmyInfo
+local function initialReinforcementsSpawnThread(group, armyInfo)
+    local delay = group.delay
+    if delay > 0 then
+        WaitSeconds(delay)
+    end
+
+    local position = ScenarioUtils.MarkerToPosition(armyInfo.ArmyName)
+    spawnUnitsWithTeleportInEffect(group.unitNames, armyInfo.ArmyIndex, position)
+end
+
+---Spawn an initial reinforcment units for all armies with teleport in effect
+---@param unitGroups ReinforcementInitialUnitsGroup[]
+---@param armySetup ArmySetup
+local function spawnInitialReinforcements(unitGroups, armySetup)
+    for _, group in ipairs(unitGroups) do
+        for _, armyInfo in pairs(armySetup) do
+            if tonumber(armyInfo.OwnerID) == group.playerId then
+                ForkThread(initialReinforcementsSpawnThread, group, armyInfo)
             end
         end
     end
 end
 
-local function spawnInitialReinforcements(gwSpawnList, Armies)
-    local counter = 1
-    for _, List in gwSpawnList do
-        for ArmyName, Army in Armies do
-            if tonumber(Army.OwnerID) == List.playerId then
-                ScenarioInfo.gwReinforcementSpawnThreads[counter] = ForkThread(initialReinforcementsSpawnThread, List, Army)
-                counter = counter + 1
-            end
-        end
+---@param armyId Army
+---@param factionIndex integer
+local function setSupportArmyColor(armyId, factionIndex)
+    if factionIndex == 1 then
+        ScenarioFramework.SetUEFNeutralColor(armyId)
+    elseif factionIndex == 2 then
+        ScenarioFramework.SetAeonNeutralColor(armyId)
+    elseif factionIndex == 3 then
+        ScenarioFramework.SetCybranNeutralColor(armyId)
+    elseif factionIndex == 4 then
+        ScenarioFramework.SetNeutralColor(armyId)
     end
 end
 
----@param index Army
----@param faction integer
-local function getSupportArmyColor(index, faction)
-    if faction == 1 then
-        ScenarioFramework.SetUEFNeutralColor(index)
-    elseif faction == 2 then
-        ScenarioFramework.SetAeonNeutralColor(index)
-    elseif faction == 3 then
-        ScenarioFramework.SetCybranNeutralColor(index)
-    elseif faction == 4 then
-        ScenarioFramework.SetNeutralColor(index)
-    end
-end
-
+---Sets up the support armies entries, faction/team index for all player teams.
 function AssignSupports()
+    ---@type ArmySetup
     local armiesList = ScenarioInfo.ArmySetup
 
-    for _, army in armiesList do
+    for _, army in pairs(armiesList) do
         if army.ArmyIndex == 1 then
             factions[1] = army.Faction
             teams[1] = army.Team
@@ -701,7 +701,7 @@ function AssignSupports()
         end
     end
 
-    for _, army in armiesList do
+    for _, army in pairs(armiesList) do
         if army.ArmyName == "SUPPORT_1" then
             army.Team = teams[1]
             army.Civilian = true
@@ -726,42 +726,42 @@ function AssignSupports()
     end
 end
 
+---comment
 function GwReinforcementsMainThread()
-    local gwReinforcementList =  import('/lua/gwReinforcementList.lua').gwReinforcements
-
-    getSupportArmyColor(armySupportIndex[teams[1]], factions[1])
-    getSupportArmyColor(armySupportIndex[teams[2]], factions[2])
+    setSupportArmyColor(armySupportIndex[teams[1]], factions[1])
+    setSupportArmyColor(armySupportIndex[teams[2]], factions[2])
 
     WaitSeconds(1)
 
-    ScenarioInfo.gwReinforcementSpawnThreads = {}
-    ScenarioInfo.gwReinforcementList = gwReinforcementList
+    ScenarioInfo.GwReinforcementSpawnThreads = {}
+    ScenarioInfo.gwReinforcementList = ReinforcementList
 
-    local ArmiesList = ScenarioInfo.ArmySetup
-    --WARN('armieslist is ' .. repr (ArmiesList))
+    ---@type ArmySetup
+    local armySetup = ScenarioInfo.ArmySetup
+    --WARN('armieslist is ' .. repr (armySetup))
 
-    for name, army in ScenarioInfo.ArmySetup do
+    for name, army in pairs(armySetup) do
         if army.Human then
-            local brain = GetArmyBrain(army.ArmyIndex)
-            local units = brain:GetListOfUnits(categories.COMMAND, false) --[[@as CommandUnit]]
-            for _, unit in units do
+            local brain = GetArmyBrain(army.ArmyIndex) --[[@as GwAIBrain]]
+            ---@type ACUUnit[]
+            local units = brain:GetListOfUnits(categories.COMMAND, false)
+            for _, unit in pairs(units) do
                 brain:AddSpecialAbilityUnit(unit, 'Recall', true)
-                LOG('GW Reinforcements: Found an ACU for army: ' .. name)
-                modHumanACU(unit)
+                modHumanACU(unit--[[@as GwACUUnit]])
             end
         end
     end
 
-    for _, armyId in armySupportIndex do
+    for _, armyId in pairs(armySupportIndex) do
         local brain = GetArmyBrain(armyId)
         brain:GiveStorage('MASS', 2000)
         brain:GiveStorage('ENERGY', 10000)
         brain:SetResourceSharing(false)
     end
 
-    --LOG("GW Reinforcements list:", repr(ScenarioInfo.gwReinforcementList))
+    --LOG("GW Reinforcements list:", repr(ReinforcementList))
 
-    spawnInitialStructures(ScenarioInfo.gwReinforcementList.initialStructure, ArmiesList)
-    spawnInitialReinforcements(ScenarioInfo.gwReinforcementList.initialUnitWarp, ArmiesList)
-    spawnPeriodicReinforcements(ScenarioInfo.gwReinforcementList.periodicUnitWarp, ArmiesList)
+    spawnInitialStructures(ReinforcementList.initialStructure, armySetup)
+    spawnInitialReinforcements(ReinforcementList.initialUnitWarp, armySetup)
+    spawnPeriodicReinforcements(ReinforcementList.periodicUnitWarp, armySetup)
 end

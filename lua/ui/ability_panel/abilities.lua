@@ -149,6 +149,7 @@ end
 
 -- Add Reinforcement
 function AddReinforcements(list)
+    ---@type ReinforcementTransportGroup
     local List = list.List
     local delay = List.delay
     AbilityName = 'CallReinforcement_' .. List.group
