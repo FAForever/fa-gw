@@ -195,7 +195,7 @@ local function modEngineer(engineer, transportBPid, beacon)
     end
 end
 
-local function spawnEngineerAndTransportAndBuildTheStructure(EngineerBPid, StructureBPid, TransportBPid, BuildLocation, beacon, group)
+local function spawnEngineerAndTransportAndBuildTheStructure(EngineerBPid, StructureBPid, TransportBPid, BuildLocation, beacon, group, groupId)
     local NearestOffMapLocation = calculateNearestOffMapLocation(beacon)
     local engineer = CreateUnitHPR(EngineerBPid, armySupport[beacon.Team], NearestOffMapLocation[1], NearestOffMapLocation[2], NearestOffMapLocation[3],0,0,0)
     engineer.ArmyName = armySupport[beacon.Team]
@@ -218,7 +218,7 @@ local function spawnEngineerAndTransportAndBuildTheStructure(EngineerBPid, Struc
 
     cmd = Transports:MoveToLocation(beaconPosition, false)
     if cmd then
-        beacon.AiBrain:ReinforcementsCalled(group)
+        beacon.AiBrain:ReinforcementsCalled(group, groupId)
         while Transports:IsCommandsActive(cmd) do
             WaitSeconds(1)
             if not aiBrain:PlatoonExists(Transports) then
@@ -253,7 +253,7 @@ local function spawnEngineerAndTransportAndBuildTheStructure(EngineerBPid, Struc
     end
 end
 
-local function spawnBuildByEngineerReinforcements(beacon, StructuresToBuild, group)
+local function spawnBuildByEngineerReinforcements(beacon, StructuresToBuild, group, groupId)
     local EngineersToSpawnAndOrdersAndTransport = {}
     local NearestOffMapLocation = beacon.NearestOffMapLocation 
     local counter = 0
@@ -273,7 +273,7 @@ local function spawnBuildByEngineerReinforcements(beacon, StructuresToBuild, gro
     for _, EngineerStructureTransportSet in EngineersToSpawnAndOrdersAndTransport do
         counter = counter + 1
         local BuildLocation = calculateBuildLocationByCounterAndPosition(counter, beacon:GetPosition())
-        ForkThread(spawnEngineerAndTransportAndBuildTheStructure,EngineerStructureTransportSet[1], EngineerStructureTransportSet[2], EngineerStructureTransportSet[3], BuildLocation, beacon, group)    
+        ForkThread(spawnEngineerAndTransportAndBuildTheStructure,EngineerStructureTransportSet[1], EngineerStructureTransportSet[2], EngineerStructureTransportSet[3], BuildLocation, beacon, group, groupId)
     end
 end
 
@@ -378,7 +378,7 @@ local function spawnTransportedReinforcements(beacon, unitsToSpawn, group, group
     --there doesn't appear to be a way to do this quickly, so we're just going to add 1 for every 2 class 3 units, 1 for every 6 class 2 units, and 1 for every 12 class 1 units
 end
 
-local function callEngineersToBeacon(beacon, List, group)
+local function callEngineersToBeacon(beacon, List, group, groupId)
     --bring in units + engineers + etc
     --[[
     beacon.Army = nil
@@ -400,7 +400,7 @@ local function callEngineersToBeacon(beacon, List, group)
 
     WARN('beacon.StructureReinforcementsToCall is ' .. repr(beacon.StructureReinforcementsToCall))
     if beacon.StructureReinforcementsToCall then
-        spawnBuildByEngineerReinforcements(beacon, beacon.StructureReinforcementsToCall, group)
+        spawnBuildByEngineerReinforcements(beacon, beacon.StructureReinforcementsToCall, group, groupId)
     end
 end
 
