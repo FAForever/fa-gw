@@ -42,10 +42,13 @@ end
 ---
 ---The colors are figured out based on army setup team and faction. We are assuming that everyone
 ---in the team has the same faction, and each team is different faction. Which it always is in GW
+---
+---Observers see primary colors
 local function setArmyColorsByFocus()
     local ScenarioFramework = import('/lua/ScenarioFramework.lua')
     ---@type ArmySetup
     local armySetup = ScenarioInfo.ArmySetup
+    ---@type table<integer, {["Faction"]: integer, ["ArmyIds"]: integer[]}>
     local teams = {}
     local myTeam = -1
     local myArmyId = GetFocusArmy()
@@ -71,17 +74,11 @@ local function setArmyColorsByFocus()
     end
 
     for teamId, data in pairs(teams) do
-        if teamId == myTeam then
-            for _, armyId in pairs(data.ArmyIds) do
-                if armyId == myArmyId then
-                    setPrimaryColor(ScenarioFramework, armyId, data.Faction)
-                else
-                    setSecondaryColor(ScenarioFramework, armyId, data.Faction)
-                end
-            end
-        else
-            for _, armyId in pairs(data.ArmyIds) do
+        for _, armyId in pairs(data.ArmyIds) do
+            if armyId == myArmyId or teamId ~= myTeam then
                 setPrimaryColor(ScenarioFramework, armyId, data.Faction)
+            else
+                setSecondaryColor(ScenarioFramework, armyId, data.Faction)
             end
         end
     end
