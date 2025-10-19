@@ -43,10 +43,17 @@ do
                 if (not IsDestroyed(self)) and self:CanLaunch(self.LaunchStatutes) then
 
                     -- send player options to the server
-                    for slot, playerOptions in self.PlayerOptions do
+                    -- GW: if slots have gaps, make sure we have army indexes in the expected order
+                    local slots = {}
+                    for slot, _ in pairs(self.PlayerOptions) do
+                        table.insert(slots, slot)
+                    end
+                    table.sort(slots)
+                    for armyIndex, slot in ipairs(slots) do
+                        local playerOptions = self.PlayerOptions[slot]
                         local ownerId = playerOptions.OwnerID
                         self:SendPlayerOptionToServer(ownerId, 'Team', playerOptions.Team)
-                        self:SendPlayerOptionToServer(ownerId, 'Army', playerOptions.StartSpot)
+                        self:SendPlayerOptionToServer(ownerId, 'Army', armyIndex) -- GW: replaced playerOptions.StartSpot
                         self:SendPlayerOptionToServer(ownerId, 'StartSpot', playerOptions.StartSpot)
                         self:SendPlayerOptionToServer(ownerId, 'Faction', playerOptions.Faction)
                     end
