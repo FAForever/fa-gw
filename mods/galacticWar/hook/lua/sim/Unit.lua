@@ -163,8 +163,9 @@ Unit = Class(oldUnit) {
 
         self:PlayTeleportOutEffects()
         self:CleanupTeleportChargeEffects()
-        
-        WaitSeconds( 0.1 )
+
+        WaitTicks(1)
+
         if not self.Dead then
             self:SetWorkProgress(0.0)
             self:StopUnitAmbientSound('TeleportLoop')
