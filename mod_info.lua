@@ -3,13 +3,13 @@
 -- Documentation for the extended FAF mod_info.lua format can be found here:
 -- https://github.com/FAForever/fa/wiki/mod_info.lua-documentation
 name = "FAF Galactic War support mod"
-version = 2
+version = 3
 _faf_modname ='galactic_war'
 copyright = "Forged Alliance Forever Community"
 description = "Support mod for Galactic War"
 author = "Forged Alliance Forever Community"
 url = "http://www.faforever.com"
-uid = "804f1e70-fe75-438f-a96f-7e423e4b8e2a"
+uid = "c4491442-67e2-446a-abfd-bd5f82647415"
 selectable = false
 exclusive = false
 ui_only = false
