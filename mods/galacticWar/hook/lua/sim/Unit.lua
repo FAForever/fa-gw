@@ -149,6 +149,9 @@ Unit = Class(oldUnit) {
         local aiBrain = self:GetAIBrain()
         local recall = Recall.CalculateRecallTime(self)
 
+        IssueStop({self})
+        IssueClearCommands({self})
+
         self:SetImmobile(true)
         self:SetBusy(true)
         self:SetBlockCommandQueue(true)
