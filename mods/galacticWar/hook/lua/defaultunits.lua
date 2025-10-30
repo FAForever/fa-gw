@@ -11,7 +11,7 @@ ACUUnit = Class(oldACUUnit) {
 		oldOnCreate(self)
 
 		self.Idling = true
-        --self:ForkThread(self.CheckIdling)
+        self:ForkThread(self.CheckIdling)
 	end,
 
     ---@param self ACUUnit
