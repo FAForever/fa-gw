@@ -175,6 +175,9 @@ deprecatedMods["SmartReclaimSupport"] = "3"
 deprecatedMods["DrimsUIPack"] = "3"
 deprecatedMods["Rheclaim"] = "2"
 
+--GW
+deprecatedMods["SupremeScoreBoard"] = "6" -- Black screen because of failing to read replay ID
+
 -- convert all mod folder name keys to lower case to prevent typos
 deprecatedMods = LowerHashTable(deprecatedMods)
 
