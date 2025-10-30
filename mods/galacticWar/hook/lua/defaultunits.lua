@@ -18,7 +18,9 @@ ACUUnit = Class(oldACUUnit) {
 	CheckIdling = function(self)
         WaitSeconds(20)
         local aiBrain = self:GetAIBrain()
-        local distance = utilities.XZDistanceTwoVectors(self:GetPosition(), aiBrain:GetStartVector3f())
+        local startX, startZ = aiBrain:GetArmyStartPos()
+        local pos = self:GetPosition()
+        local distance = utilities.GetDistanceBetweenTwoPoints2(startX, startZ, pos[1], pos[3])
         if distance == 0 and self.Idling then
             self:PlayTeleportOutEffects()
             self:CleanupTeleportChargeEffects()

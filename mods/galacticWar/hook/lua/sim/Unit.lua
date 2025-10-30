@@ -1,3 +1,5 @@
+local Recall = import("/lua/sim/Recall.lua")
+
 local oldUnit = Unit
 Unit = Class(oldUnit) {
     InitiateActivation = function(self, initTime) 
@@ -142,11 +144,11 @@ Unit = Class(oldUnit) {
             self.RecallThread = self:ForkThread(self.InitiateRecallThread)
         end
     end,
-    
+
     InitiateRecallThread = function(self)
         local aiBrain = self:GetAIBrain()
-        local distance = utilities.XZDistanceTwoVectors(self:GetPosition(), aiBrain:GetStartVector3f())        
-        local recall = 10 + math.pow(math.sqrt(distance), 1.7)
+        local recall = Recall.CalculateRecallTime(self)
+
         self:SetImmobile(true)
         self:SetBusy(true)
         self:SetBlockCommandQueue(true)
@@ -154,10 +156,10 @@ Unit = Class(oldUnit) {
         self:PlayUnitAmbientSound('TeleportLoop')
         self:PlayRecallChargeEffects()
         self.RecallTime = CreateEconomyEvent(self, 0, 0, recall, self.UpdateRecallProgress)
-        WaitFor( self.RecallTime )
+        WaitFor(self.RecallTime)
 
         if self.RecallTime then
-            RemoveEconomyEvent(self, self.RecallTime )
+            RemoveEconomyEvent(self, self.RecallTime)
             self.RecallTime = nil
         end
 

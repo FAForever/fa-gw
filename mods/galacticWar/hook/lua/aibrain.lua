@@ -290,11 +290,4 @@ AIBrain = Class(oldAIBrain) {
         end
         return r
     end,
-
-    ---@param self GwAIBrain
-    ---@return table
-    GetStartVector3f = function(self)
-        local startX, startZ = self:GetArmyStartPos()
-        return {startX, 0, startZ}
-    end,
 }
