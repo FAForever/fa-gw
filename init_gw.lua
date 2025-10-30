@@ -639,6 +639,8 @@ allowedAssetsNxy = LowerHashTable(allowedAssetsNxy)
 
 local allowedAssetsGw = { }
 allowedAssetsGw["gw_mod.gw"] = true
+allowedAssetsGw["gw_reinforcements.gw"] = true
+allowedAssetsGw["gw_scenario.gw"] = true
 allowedAssetsGw = LowerHashTable(allowedAssetsGw)
 
 -- load maps / mods from custom vault location, if set by client
