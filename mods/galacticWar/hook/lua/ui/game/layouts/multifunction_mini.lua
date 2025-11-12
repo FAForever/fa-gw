@@ -21,7 +21,8 @@ function SetLayout()
         UIUtil.UIFile('/game/tab-l-btn/tab-open_btn_over.dds'),
         UIUtil.UIFile('/game/tab-l-btn/tab-close_btn_dis.dds'),
         UIUtil.UIFile('/game/tab-l-btn/tab-open_btn_dis.dds'))
-    LayoutHelpers.AtLeftTopIn(controls.collapseArrow, savedParent, -3, 173) -- GW: old value 97
+    LayoutHelpers.AtLeftIn(controls.collapseArrow, savedParent, -3)
+    LayoutHelpers.AtVerticalCenterIn(controls.collapseArrow, controls.bg)
     controls.collapseArrow.Depth:Set(function() return controls.bg.Depth() + 10 end)
     
     LayoutHelpers.Below(controls.bg, econControl, 5)
