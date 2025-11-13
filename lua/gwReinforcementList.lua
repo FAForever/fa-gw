@@ -1,7 +1,7 @@
 gwReinforcements = {
     initialStructure = {
         {
-            playerName = "speed2",
+            playerId = 0,
             delay = 10,
             unitNames = {
                 "xsb2101",
@@ -14,15 +14,15 @@ gwReinforcements = {
     },
     passiveItems = {
         {
-            playerName = "speed2",
+            playerId = 0,
             itemNames = {"autorecall"}
         },
     },
     transportedUnits = {
         {
-            playerName = "speed2",
+            playerId = 0,
             called = false,
-            delay = 5,
+            delay = 60,
             group = 1,
             unitNames = {
                 "UEL0202","UEL0202","UEL0202","UEL0202","UEL0202","UEL0202", -- six pillars
@@ -30,7 +30,7 @@ gwReinforcements = {
             },
         },
         {
-            playerName = "speed2",
+            playerId = 0,
             called = false,
             delay = 150,
             group = 2,
@@ -40,7 +40,7 @@ gwReinforcements = {
             },
         },
         {
-            playerName = "speed2",
+            playerId = 0,
             called = false,
             delay = 200,
             group = 3,
@@ -50,7 +50,7 @@ gwReinforcements = {
             },
         },
         {
-            playerName = "speed2",
+            playerId = 0,
             called = false,
             delay = 200,
             group = 4,
@@ -60,7 +60,7 @@ gwReinforcements = {
             },
         },
         {
-            playerName = "speed2",
+            playerId = 0,
             called = false,
             delay = 200,
             group = 5,
