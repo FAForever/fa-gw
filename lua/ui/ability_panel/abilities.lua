@@ -747,8 +747,9 @@ function StartCoolDownTimer(buttonName)
 
         button.buttonText:SetNeedsFrameUpdate(true)
 
-        UpdateTime = function(self, curTime)
-            self:SetText( math.ceil(curTime) )
+        local UpdateTime = function(self, curTime)
+            curTime = math.ceil(curTime)
+            self:SetText(string.format("%d:%02d", math.floor(curTime / 60), math.mod(curTime, 60)))
         end
 
         button.buttonText.OnFrame = function(self, delta)
