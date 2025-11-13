@@ -27,7 +27,6 @@ local teams = {-1, -1}
 
 ---@class ReinforcementGroupBase
 ---@field playerId integer
----@field playerName string
 ---@field avatarName string
 ---@field delay integer Delay in second before this group can be used
 ---@field unitNames BlueprintId[] List of units this group contains
