@@ -16,7 +16,7 @@ ACUUnit = Class(oldACUUnit) {
 
     ---@param self ACUUnit
 	CheckIdling = function(self)
-        WaitSeconds(20)
+        WaitSeconds(30)
         local aiBrain = self:GetAIBrain()
         local startX, startZ = aiBrain:GetArmyStartPos()
         local pos = self:GetPosition()
