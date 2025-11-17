@@ -21,12 +21,13 @@ end
 ---@return number time
 function CalculateRecallTime(unit)
     local minimumTime = 15
+    local maxTime = 90
 
     local aiBrain = unit:GetAIBrain()
     local startX, startZ = aiBrain:GetArmyStartPos()
     local pos = unit:GetPosition()
     local distance = utils.GetDistanceBetweenTwoPoints2(startX, startZ, pos[1], pos[3])
-    local time = minimumTime + math.pow(math.sqrt(distance), 1.6)
+    local time = math.min(minimumTime + math.pow(math.sqrt(distance), 1.45), maxTime)
     --LOG("Recall time: ", time, ", distance: ", distance)
 
     return time
