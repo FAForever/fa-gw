@@ -1,9 +1,4 @@
-local ranks = {
-    [0] = {"Private", "Corporal", "Sergeant", "Captain", "Major", "Colonel", "General", "Supreme Commander"},
-    [1] = {"Paladin", "Legate", "Priest", "Centurion", "Crusader", "Evaluator", "Avatar-of-War", "Champion"},
-    [2] = {"Drone", "Node", "Ensign", "Agent", "Inspector", "Starshina", "Commandarm" ,"Elite Commander"},
-    [3] = {"Su", "Sou", "Soth", "Ithem", "YthiIs", "Ythilsthe", "YthiThuum", "Suythel Cosethuum"},
-}
+local Ranks = import("/lua/ui/gw/ranks.lua")
 
 --GW update displayed name to "Rank AvatarName"
 function updatePlayerName(line)
@@ -11,7 +6,10 @@ function updatePlayerName(line)
     local playerRank = sessionInfo.Options.Ranks[playerName]
     for _, armyData in GetArmiesTable().armiesTable do
         if armyData.nickname == playerName then
-            line.name:SetText(ranks[armyData.faction][playerRank] .. " " .. playerName)
+            WARN(armyData.faction, playerRank)
+            local rankName = Ranks.GetRankName(armyData.faction, playerRank)
+            local text = string.format("%d-%s %s", playerRank or 0, rankName, playerName)
+            line.name:SetText(text)
             break
         end
     end
