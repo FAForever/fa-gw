@@ -324,7 +324,7 @@ function CreateSpawnAreas(teams)
         return areas
     end
 
-    local terrainSymmetry = ScenarioInfo.Options.SpawnAreaType
+    local terrainSymmetry = ScenarioInfo.Options.SSLSpawnAreaType
 
     local t1, t2, c1, c2 = GetColorsAndTeams(teams)
 
