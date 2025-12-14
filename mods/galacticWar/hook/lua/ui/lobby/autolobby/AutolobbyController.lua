@@ -34,7 +34,25 @@ do
         return allRanks
     end
 
+    ---@alias SpawnAreaType
+    ---| "none"
+    ---| "auto" -- automatically generated
+    ---| "tvsb" -- top vs bottom
+    ---| "rvsl" -- right vs left
+    ---| "tlvsbr" -- top left vs bottom right
+    ---| "trvsbl" -- top right vs bottom left
+    ---| "whole" -- whole map
+
+    ---@param self UIAutolobbyCommunications
+    ---@return SpawnAreaType
+    AutolobbyCommunications.GetSpawnAreaType = function(self)
+        local spawnAreaType = self:GetCommandLineArgumentString("/ssl", "none") --[[@as SpawnAreaType]]
+
+        return spawnAreaType
+    end
+
     -- TODO: Hook instead of shadow
+    ---@param self UIAutolobbyCommunications
     AutolobbyCommunications.LaunchThread = function(self)
         while not IsDestroyed(self) do
             if self:CanLaunch(self.LaunchStatutes) then
@@ -64,6 +82,7 @@ do
                     self.GameOptions.Divisions = self:CreateDivisionsTable(self.PlayerOptions)
                     self.GameOptions.ClanTags = self:CreateClanTagsTable(self.PlayerOptions)
                     self.GameOptions.Ranks = self:CreateRanksTable(self.PlayerOptions) --GW: Populate ranks for the UI
+                    self.GameOptions.SpawnAreaType = self:GetSpawnAreaType()
 
                     -- create game configuration
                     local gameConfiguration = {

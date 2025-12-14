@@ -14,6 +14,7 @@ SetupCommandLineSkirmish = function(scenario, isPerfTest)
     VerifyScenarioConfiguration(scenario)
 
     scenario.Options = GetCommandLineOptions(isPerfTest)
+    scenario.Options.SpawnAreaType = GetCommandLineArg("/ssl", 1)[1] or "none"
 
     sessionInfo = { }
     sessionInfo.playerName = Prefs.GetFromCurrentProfile('Name') or 'Player'
