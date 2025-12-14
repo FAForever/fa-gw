@@ -5,7 +5,7 @@ local Group = import('/lua/maui/group.lua').Group
 
 local LayoutFor = import('/lua/maui/layouthelpers.lua').LayoutFor
 
-local preparationTimeSeconds = tonumber(SessionGetScenarioInfo().Options.PreparationTime) or 30
+local preparationTimeSeconds = tonumber(SessionGetScenarioInfo().Options.SSLPreparationTime) or 30
 
 local Markers = {}
 local Timer = nil

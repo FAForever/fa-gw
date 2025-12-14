@@ -82,8 +82,8 @@ do
                     self.GameOptions.Divisions = self:CreateDivisionsTable(self.PlayerOptions)
                     self.GameOptions.ClanTags = self:CreateClanTagsTable(self.PlayerOptions)
                     self.GameOptions.Ranks = self:CreateRanksTable(self.PlayerOptions) --GW: Populate ranks for the UI
-                    self.GameOptions.SpawnAreaType = self:GetSpawnAreaType()
-                    self.GameOptions.PreparationTime = 30
+                    self.GameOptions.SSLSpawnAreaType = self:GetSpawnAreaType()
+                    self.GameOptions.SSLPreparationTime = 30
 
                     -- create game configuration
                     local gameConfiguration = {

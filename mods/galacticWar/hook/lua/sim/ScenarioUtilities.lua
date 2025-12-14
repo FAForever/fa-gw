@@ -1,9 +1,7 @@
 do
     local _InitializeArmies = InitializeArmies
     function InitializeArmies()
-        ScenarioInfo.IsSSL = ScenarioInfo.Options.AutoTeams
-            and ScenarioInfo.Options.SpawnAreaType
-            and ScenarioInfo.Options.SpawnAreaType ~= "none"
+        ScenarioInfo.IsSSL = ScenarioInfo.Options.SSLSpawnAreaType and ScenarioInfo.Options.SSLSpawnAreaType ~= "none"
 
         if not ScenarioInfo.IsSSL then
             return _InitializeArmies()

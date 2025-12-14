@@ -428,7 +428,7 @@ function PreparationPhase(tblGroups)
     ScenarioInfo.SpawnAreas = areas
     ScenarioInfo.SpawnLocations = DefaultSpawnLocations(areas, armyToTeam)
     local mainThread = ForkThread(RenderThread)
-    WaitTicks((tonumber(ScenarioInfo.Options.PreparationTime) or 30) * 10)
+    WaitTicks((tonumber(ScenarioInfo.Options.SSLPreparationTime) or 30) * 10)
 
     for iArmy, pos in ScenarioInfo.SpawnLocations do
         ArmyBrains[iArmy].StartPos = Vector2(pos[1], pos[3])
