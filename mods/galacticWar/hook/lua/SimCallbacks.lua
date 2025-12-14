@@ -54,4 +54,6 @@ do
 			end
 		end
 	end
+
+	Callbacks.SelectSpawnLocation = import("/lua/sim/SelectSpawnLocation.lua").SelectSpawnLocation
 end

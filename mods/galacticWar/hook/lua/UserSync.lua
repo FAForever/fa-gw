@@ -9,7 +9,7 @@ OnSync = function()
         end
     end
 
-	for k, v in Sync.AddSpecialAbility do
+    for k, v in Sync.AddSpecialAbility do
         local army = v.Army
         if army == GetFocusArmy() then
             import('/lua/ui/ability_panel/abilities.lua').AddSpecialAbility(v)
@@ -40,8 +40,8 @@ OnSync = function()
         if army == GetFocusArmy() then
             import('/lua/ui/ability_panel/abilities.lua').EnableButtonStopCoolDown(v.AbilityName)
         end
-    end    
-    
+    end
+
     if Sync.NewTech then
         import('/lua/ui/game/construction.lua').NewTech(Sync.NewTech)
     end
@@ -57,5 +57,13 @@ OnSync = function()
             local armyIndex, groupId = unpack(group)
             GpgNetSend('UnitGroupCalled', armyIndex, groupId)
         end
+    end
+
+    if Sync.Markers then
+        import('/lua/ui/SSL/Markers.lua').UpdateMarkers(Sync.Markers)
+    end
+
+    if Sync.DeleteMarkers then
+        import('/lua/ui/SSL/Markers.lua').Delete()
     end
 end
