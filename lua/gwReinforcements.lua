@@ -731,6 +731,9 @@ function GwReinforcementsMainThread()
     setSupportArmyColor(armySupportIndex[teams[2]], factions[2])
 
     WaitSeconds(1)
+    while ScenarioInfo.IsSpawnPhase do
+        WaitSeconds(1)
+    end
 
     ScenarioInfo.GwReinforcementSpawnThreads = {}
     ScenarioInfo.gwReinforcementList = ReinforcementList
