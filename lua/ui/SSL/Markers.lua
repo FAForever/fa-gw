@@ -3,172 +3,136 @@ local LayoutHelpers = import('/lua/maui/layouthelpers.lua')
 local Bitmap = import('/lua/maui/bitmap.lua').Bitmap
 local Group = import('/lua/maui/group.lua').Group
 
+local LazyVar = import('/lua/lazyvar.lua').Create
 local LayoutFor = import('/lua/maui/layouthelpers.lua').LayoutFor
 
 local preparationTimeSeconds = tonumber(SessionGetScenarioInfo().Options.SSLPreparationTime) or 30
 
-local Markers = {}
-local Timer = nil
-local Credits = nil
-function CreateCredits()
-    Credits = UIUtil.CreateText(GetFrame(0), 'Mod by 4z0t', 16, "Arial", true)
-    Credits:SetColor('ffffffff')
-    Credits:DisableHitTest()
-    --Credits:SetNeedsFrameUpdate(true)
-    LayoutHelpers.AtLeftTopIn(Credits, GetFrame(0), 100, 500)
-    Credits.text = UIUtil.CreateText(Credits, 'Markers by Eternal-', 16, "Arial", true)
-    Credits.text:SetColor('ffffffff')
-    Credits.text:DisableHitTest()
-    LayoutHelpers.Below(Credits.text, Credits, 4)
-end
+---@class SSL.Marker : Bitmap
+---@field worldView WorldView
+---@field _nickname Text
+---@field _faction Bitmap
+---@field _separator Bitmap
+---@field _color Bitmap
+---@field PosX LazyVar
+---@field PosY LazyVar
+---@field pos Vector
+SSLMarker = Class(Bitmap)
+{
+    ---@param self SSL.Marker
+    ---@param parent SSL.Overlay
+    ---@param worldView WorldView
+    __init = function(self, parent, worldView)
+        Bitmap.__init(self, parent)
 
-function UpdateMarkers(SyncMarkers)
-    ---@type WorldView
-    local worldView = import("/lua/ui/game/worldview.lua").viewLeft
-    if not worldView.spawnOverlay then
-        worldView.spawnOverlay = Group(worldView)
-        LayoutFor(worldView.spawnOverlay)
-            :Fill(worldView)
-            :EnableHitTest(true)
-        worldView.spawnOverlay.HandleEvent = function(self, event)
-            if event.Type == "ButtonPress" and event.Modifiers.Left then
-                local pos = GetMouseWorldPos()
-                SimCallback {
-                    Func = "SelectSpawnLocation",
-                    Args = {
-                        Army = GetFocusArmy(),
-                        Position = Vector(pos[1], pos[2], pos[3])
-                    }
-                }
-            end
-            return false
-        end
+        self.worldView = worldView
+        self.pos = Vector(0, 0, 0)
 
-    end
+        self._nickname = UIUtil.CreateText(self, '', 12, "Arial", true)
+        self._faction = Bitmap(self)
+        self._separator = Bitmap(self)
+        self._color = Bitmap(self)
 
-    if not Timer then
-        CreateTimer()
-    end
-    if not Credits then
-        CreateCredits()
-    end
-    -- LOG(repr(GetArmiesTable()))
-    for strArmy, pos in SyncMarkers do
-        if IsDestroyed(Markers[strArmy]) then
-            Markers[strArmy] = createPositionMarker(GetArmy(strArmy), pos)
-        else
-            Markers[strArmy].pos = { pos[1], pos[2], pos[3] }
-        end
-    end
-end
+        self.PosX = LazyVar()
+        self.PosY = LazyVar()
 
-function CreateTimer()
-    Timer = UIUtil.CreateText(GetFrame(0), '', 16, "Arial Black", true)
-    Timer:SetColor('ffffffff')
-    Timer:DisableHitTest()
-    Timer:SetNeedsFrameUpdate(true)
-    LayoutHelpers.AtHorizontalCenterIn(Timer, GetFrame(0))
-    LayoutHelpers.AtTopIn(Timer, GetFrame(0), 200)
-    Timer.OnFrame = function(self, delta)
-        self:SetText('Choose your destiny: ' .. math.ceil((preparationTimeSeconds - GameTick() / 10)))
-    end
+        self.Left:Set(function()
+            return math.floor(self.worldView.Left() + self.PosX() - self.Width() * 0.5)
+        end)
+        self.Top:Set(function()
+            return math.floor(self.worldView.Top() + self.PosY() - self.Height() * 0.5)
+        end)
+    end,
 
-end
+    ---@param self SSL.Marker
+    InitLayout = function(self)
+        LayoutFor(self._nickname)
+            :AtCenterIn(self)
+            :Color('ffffffff')
 
-function createPositionMarker(armyData, postable)
-    local worldView = import('/lua/ui/game/worldview.lua').viewLeft
+        LayoutFor(self._separator)
+            :Left(self._nickname.Left)
+            :Right(self._nickname.Right)
+            :AnchorToBottom(self._nickname)
+            :Color('ffffffff')
+            :Height(1)
 
-    local pos = { postable[1], postable[2], postable[3] - 10 }
+        LayoutFor(self._faction)
+            :Width(16)
+            :Height(16)
+            :AtVerticalCenterIn(self._nickname)
+            :LeftOf(self._nickname, 4)
 
-    -- Bitmap of marker
-    local posMarker = Bitmap(worldView)
-    LayoutHelpers.AtCenterIn(posMarker, worldView)
-    LayoutHelpers.SetDimensions(posMarker, 150, 25)
-    posMarker.pos = pos
-    posMarker.Depth:Set(10)
-    posMarker:SetNeedsFrameUpdate(true)
-    posMarker:DisableHitTest()
+        LayoutFor(self._color)
+            :Fill(self._faction)
+            :Under(self._faction)
+            :Color('ffffffff')
 
-    -- Nickname
-    posMarker.nickname = UIUtil.CreateText(posMarker, armyData.nickname, 12)
-
-    posMarker.nickname:SetColor('ffffffff')
-
-    posMarker.nickname:SetDropShadow(true)
-    LayoutHelpers.AtCenterIn(posMarker.nickname, posMarker)
-    posMarker.nickname:DisableHitTest()
-
-    -- Army color line below the nickname
-    posMarker.separator = Bitmap(posMarker)
-    posMarker.separator:SetTexture('/mods/SSL/textures/clear.dds')
-    posMarker.separator.Left:Set(posMarker.nickname.Left)
-    posMarker.separator.Right:Set(posMarker.nickname.Right)
-
-    posMarker.separator.Height:Set(1)
-
-    LayoutHelpers.Below(posMarker.separator, posMarker.nickname, 1) --	  1	px
-    posMarker.separator:SetSolidColor(armyData.color) --				    |line|
-    posMarker.separator:DisableHitTest()
-
-    -- Bitmap of faction icon
-    posMarker.faction = Bitmap(posMarker)
-    -- posMarker.faction:SetTexture('/mods/Reveal positions/textures/'..armyData.faction..'.tga')
-    posMarker.faction:SetTexture(UIUtil.SkinnableFile(UIUtil.GetFactionIcon(armyData.faction)))
-
-    LayoutHelpers.SetDimensions(posMarker.faction, 16, 16)
-
-    LayoutHelpers.AtVerticalCenterIn(posMarker.faction, posMarker.nickname) --	 distance
-    LayoutHelpers.LeftOf(posMarker.faction, posMarker.nickname, 4) --     |icon|   [4px]   |nickname|
-    posMarker.faction:DisableHitTest()
-
-    -- Fill the bitmap of faction icon by army color
-    posMarker.color = Bitmap(posMarker.faction)
-    LayoutHelpers.FillParent(posMarker.color, posMarker.faction)
-    posMarker.color.Depth:Set(function()
-        return posMarker.faction.Depth() - 1
-    end)
-    posMarker.color:SetSolidColor(armyData.color)
-    posMarker.color:DisableHitTest()
-
-    local LazyVar = import('/lua/lazyvar.lua').Create
-    posMarker.PosX = LazyVar()
-    posMarker.PosY = LazyVar()
-
-    posMarker.Left:Set(function()
-        return worldView.Left() + posMarker.PosX() - posMarker.Width() / 2
-    end)
-    posMarker.Top:Set(function()
-        return worldView.Top() + posMarker.PosY() - posMarker.Height() / 2
-    end)
+        LayoutFor(self)
+            :Width(150)
+            :Height(25)
+            :NeedsFrameUpdate(true)
+            :DisableHitTest(true)
+    end,
 
 
-    posMarker.OnFrame = function(self, delta)
-        local pos = worldView:Project(self.pos)
+    ---@param self SSL.Marker
+    ---@param data ArmyInfo
+    SetArmyData = function(self, data)
+        self._nickname:SetText(data.nickname)
+        self._separator:SetSolidColor(data.color)
+        self._color:SetSolidColor(data.color)
+        self._faction:SetTexture(
+            UIUtil.SkinnableFile(
+                UIUtil.GetFactionIcon(data.faction)
+            )
+        )
+    end,
+
+    ---@param self SSL.Marker
+    ---@param delta number
+    OnFrame = function(self, delta)
+        local pos = self.worldView:Project(self.pos)
         self.PosX:Set(pos.x)
         self.PosY:Set(pos.y)
     end
+}
 
-    return posMarker
-end
+---@class SSL.Timer : Group
+---@field _text Text
+SSLTimer = Class(Group)
+{
+    ---@param self SSL.Timer
+    ---@param parent SSL.Overlay
+    __init = function(self, parent)
+        Group.__init(self, parent)
 
-function Delete()
-    for _, Marker in Markers do
-        Marker:Destroy()
+        self._text = UIUtil.CreateText(self, '', 16, "Arial Black", true)
+    end,
+
+    ---@param self SSL.Timer
+    InitLayout = function(self)
+        LayoutFor(self._text)
+            :AtCenterIn(self)
+            :Color('ffffffff')
+
+        LayoutFor(self)
+            :Width(100)
+            :Height(25)
+            :DisableHitTest(true)
+            :NeedsFrameUpdate(true)
+    end,
+
+    ---@param self SSL.Timer
+    ---@param delta number
+    OnFrame = function(self, delta)
+        local time = math.ceil((preparationTimeSeconds - GameTick() / 10))
+        self._text:SetText('Choose your spawning location: ' .. time)
     end
-    Timer:Destroy()
-    Credits:Destroy()
+}
 
-    ---@type WorldView
-    local worldView = import("/lua/ui/game/worldview.lua").viewLeft
-    if worldView.spawnOverlay then
-        worldView.spawnOverlay:Destroy()
-        worldView.spawnOverlay = nil
-    end
-    Markers = nil
-    Timer = nil
-    Credits = nil
-end
-
+---@param name string
+---@return ArmyInfo
 function GetArmy(name)
     for _, Army in GetArmiesTable().armiesTable do
         if Army.name == name then
@@ -177,11 +141,84 @@ function GetArmy(name)
     end
 end
 
-function ArmyName(name)
-    for _, Army in GetArmiesTable().armiesTable do
-        if Army.name == name then
-            return Army.nickname
+---@class SSL.Overlay : Group
+---@field _timer SSL.Timer
+---@field _markers table<string, SSL.Marker>
+SSLOverlay = Class(Group)
+{
+    ---@param self SSL.Overlay
+    ---@param parent WorldView
+    __init = function(self, parent)
+        Group.__init(self, parent)
+
+        self._timer = SSLTimer(self)
+        self._markers = {}
+    end,
+
+    ---@param self SSL.Overlay
+    InitLayout = function(self)
+        local parent = self:GetParent()
+
+        self._timer:InitLayout()
+        LayoutFor(self._timer)
+            :AtTopIn(self, 200)
+            :AtHorizontalCenterIn(self)
+
+        LayoutFor(self)
+            :Fill(parent)
+            :EnableHitTest(true)
+    end,
+
+    ---@param self SSL.Overlay
+    ---@param data table<string, Vector>
+    UpdateMarkers = function(self, data)
+        local markers = self._markers
+        for strArmy, pos in data do
+            if IsDestroyed(markers[strArmy]) then
+                local marker = SSLMarker(self, self:GetParent())
+                marker:InitLayout()
+                marker:SetArmyData(GetArmy(strArmy))
+                markers[strArmy] = marker
+            else
+                markers[strArmy].pos = { pos[1], pos[2], pos[3] }
+            end
         end
+    end,
+
+    ---@param self SSL.Overlay
+    ---@param event KeyEvent
+    HandleEvent = function(self, event)
+        if event.Type == "ButtonPress" and event.Modifiers.Left then
+            local pos = GetMouseWorldPos()
+            SimCallback {
+                Func = "SelectSpawnLocation",
+                Args = {
+                    Army = GetFocusArmy(),
+                    Position = Vector(pos[1], pos[2], pos[3])
+                }
+            }
+        end
+        return false
+    end,
+}
+
+function UpdateMarkers(syncMarkers)
+    ---@type WorldView
+    local worldView = import("/lua/ui/game/worldview.lua").viewLeft
+    local overlay = worldView.spawnOverlay --[[@as SSL.Overlay]]
+    if IsDestroyed(overlay) then
+        worldView.spawnOverlay = SSLOverlay(worldView)
+        worldView.spawnOverlay:InitLayout()
+        overlay = worldView.spawnOverlay
     end
-    return "ERROR"
+    overlay:UpdateMarkers(syncMarkers)
+end
+
+function Delete()
+    ---@type WorldView
+    local worldView = import("/lua/ui/game/worldview.lua").viewLeft
+    if not IsDestroyed(worldView.spawnOverlay--[[@as SSL.Overlay]] ) then
+        worldView.spawnOverlay:Destroy()
+    end
+    worldView.spawnOverlay = nil
 end
