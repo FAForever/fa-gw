@@ -1,8 +1,6 @@
 local UIUtil = import('/lua/ui/uiutil.lua')
-local LayoutHelpers = import('/lua/maui/layouthelpers.lua')
 local Bitmap = import('/lua/maui/bitmap.lua').Bitmap
 local Group = import('/lua/maui/group.lua').Group
-
 local LazyVar = import('/lua/lazyvar.lua').Create
 local LayoutFor = import('/lua/maui/layouthelpers.lua').LayoutFor
 
