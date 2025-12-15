@@ -188,7 +188,7 @@ function ComputeSpawnAreas(t1, t2, c1, c2)
     local armyPositions = {}
     for _, armyName in armies do
         ---@type Marker
-        local marker = import("/lua/sim/ScenarioUtilities.lua").GetMarker(armyName)
+        local marker = ScenarioUtils.GetMarker(armyName)
         if marker then
             armyPositions[armyName] = marker.position
         end
