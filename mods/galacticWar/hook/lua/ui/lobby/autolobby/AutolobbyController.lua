@@ -46,9 +46,22 @@ do
     ---@param self UIAutolobbyCommunications
     ---@return SpawnAreaType
     AutolobbyCommunications.GetSpawnAreaType = function(self)
-        local spawnAreaType = self:GetCommandLineArgumentString("/ssl", "none") --[[@as SpawnAreaType]]
-
-        return spawnAreaType
+        local raw = self:GetCommandLineArgumentString("/ssl", "none")
+        ---@type table<SpawnAreaType, boolean>
+        local allowed = {
+            none = true,
+            auto = true,
+            tvsb = true,
+            rvsl = true,
+            tlvsbr = true,
+            trvsbl = true,
+            whole = true,
+        }
+        if allowed[raw] then
+            return raw --[[@as SpawnAreaType]]
+        end
+        WARN(('* Invalid /ssl value "%s"; defaulting to "none"'):format(tostring(raw)))
+        return "none"
     end
 
     -- TODO: Hook instead of shadow
