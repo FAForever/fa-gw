@@ -28,15 +28,7 @@ AIBrain = Class(oldAIBrain) {
         self.SpecialAbilities = {}
         self.SpecialAbilityUnits = {}
 
-        self.Support = false
-        for name, data in ScenarioInfo.ArmySetup do
-            if name == self.Name then
-                if data.Support then -- GW Addition
-                    self.Support = data.Support
-                end
-                break
-            end
-        end
+        self.Support = ScenarioInfo.ArmySetup[self.Name].Support or false
     end,
 
     ---@param self GwAIBrain
