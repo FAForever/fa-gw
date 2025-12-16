@@ -34,7 +34,38 @@ do
         return allRanks
     end
 
+    ---@alias SpawnAreaType
+    ---| "none"
+    ---| "auto" -- automatically generated
+    ---| "tvsb" -- top vs bottom
+    ---| "rvsl" -- right vs left
+    ---| "tlvsbr" -- top left vs bottom right
+    ---| "trvsbl" -- top right vs bottom left
+    ---| "whole" -- whole map
+
+    ---@param self UIAutolobbyCommunications
+    ---@return SpawnAreaType
+    AutolobbyCommunications.GetSpawnAreaType = function(self)
+        local raw = self:GetCommandLineArgumentString("/ssl", "none")
+        ---@type table<SpawnAreaType, boolean>
+        local allowed = {
+            none = true,
+            auto = true,
+            tvsb = true,
+            rvsl = true,
+            tlvsbr = true,
+            trvsbl = true,
+            whole = true,
+        }
+        if allowed[raw] then
+            return raw --[[@as SpawnAreaType]]
+        end
+        WARN(('* Invalid /ssl value "%s"; defaulting to "none"'):format(tostring(raw)))
+        return "none"
+    end
+
     -- TODO: Hook instead of shadow
+    ---@param self UIAutolobbyCommunications
     AutolobbyCommunications.LaunchThread = function(self)
         while not IsDestroyed(self) do
             if self:CanLaunch(self.LaunchStatutes) then
@@ -64,6 +95,8 @@ do
                     self.GameOptions.Divisions = self:CreateDivisionsTable(self.PlayerOptions)
                     self.GameOptions.ClanTags = self:CreateClanTagsTable(self.PlayerOptions)
                     self.GameOptions.Ranks = self:CreateRanksTable(self.PlayerOptions) --GW: Populate ranks for the UI
+                    self.GameOptions.SSLSpawnAreaType = self:GetSpawnAreaType()
+                    self.GameOptions.SSLPreparationTime = 30
 
                     -- create game configuration
                     local gameConfiguration = {

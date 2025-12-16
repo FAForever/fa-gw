@@ -3,8 +3,10 @@ local AbilityDefinition = import('/lua/abilitydefinition.lua').abilities
 ---@type AIBrain
 local oldAIBrain = AIBrain ---@diagnostic disable-line: undefined-global
 local oldOnCreateHuman = oldAIBrain.OnCreateHuman
+local AIBrain_GetArmyStartPos = oldAIBrain.GetArmyStartPos
 
 ---@class GwAIBrain: AIBrain
+---@field StartPos Vector2
 ---@field SpecialAbilities table GW Addition
 ---@field SpecialAbilityUnits table GW Addition
 ---@field Support boolean Is this a GW support army?
@@ -30,7 +32,7 @@ AIBrain = Class(oldAIBrain) {
         --LOG('*AI DEBUG: AI planName = ', repr(planName))
         --LOG('*AI DEBUG: SCENARIO AI PLAN LIST = ', repr(aiScenarioPlans))
         local civilian = false
-        for name,data in ScenarioInfo.ArmySetup do
+        for name, data in ScenarioInfo.ArmySetup do
             if name == self.Name then
                 civilian = data.Civilian
                 if data.Support then -- GW Addition
@@ -51,7 +53,7 @@ AIBrain = Class(oldAIBrain) {
                 ScenarioInfo.ArmySetup[self.Name].AIPersonality = string.sub(per, 1, cheatPos - 1)
             end
 
-            LOG('* OnCreateAI: AIPersonality: ('..per..')')
+            LOG('* OnCreateAI: AIPersonality: (' .. per .. ')')
             if string.find(per, 'sorian') then
                 self.Sorian = true
             end
@@ -139,7 +141,7 @@ AIBrain = Class(oldAIBrain) {
     ---@param groupId integer
     ReinforcementsCalled = function(self, group, groupId)
         DisableSpecialAbility(self:GetArmyIndex(), 'CallReinforcement_' .. group)
-        table.insert(Sync.ReinforcementCalled, {self:GetArmyIndex(), groupId })
+        table.insert(Sync.ReinforcementCalled, { self:GetArmyIndex(), groupId })
     end,
 
     ---@param self GwAIBrain
@@ -240,7 +242,7 @@ AIBrain = Class(oldAIBrain) {
     ---@param type any
     ---@return unknown
     GetSpecialAbilityUnitIds = function(self, type)
-        self:GetSpecialAbilityUnits(type)  -- only for cleaning up the table, not interested in the results of this call
+        self:GetSpecialAbilityUnits(type) -- only for cleaning up the table, not interested in the results of this call
         return self.SpecialAbilityUnits[type]
     end,
 
@@ -290,4 +292,14 @@ AIBrain = Class(oldAIBrain) {
         end
         return r
     end,
+
+    ---@param self GwAIBrain
+    ---@return number
+    ---@return number
+    GetArmyStartPos = function(self)
+        if ScenarioInfo.IsSSL then
+            return self.StartPos.x, self.StartPos.y
+        end
+        return AIBrain_GetArmyStartPos(self)
+    end
 }

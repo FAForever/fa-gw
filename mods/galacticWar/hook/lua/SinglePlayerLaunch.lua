@@ -14,6 +14,8 @@ SetupCommandLineSkirmish = function(scenario, isPerfTest)
     VerifyScenarioConfiguration(scenario)
 
     scenario.Options = GetCommandLineOptions(isPerfTest)
+    scenario.Options.SSLSpawnAreaType = GetCommandLineArg("/ssl", 1)[1] or "none"
+    scenario.Options.SSLPreparationTime = 15
 
     sessionInfo = { }
     sessionInfo.playerName = Prefs.GetFromCurrentProfile('Name') or 'Player'
@@ -47,6 +49,7 @@ SetupCommandLineSkirmish = function(scenario, isPerfTest)
             WARN("Added info:", sessionInfo.teamInfo[index].Rank, sessionInfo.teamInfo[index].StartSpot)
             -- End GW
         else
+            sessionInfo.teamInfo[index].Team = 2 + math.mod(index, 2)
             sessionInfo.teamInfo[index].AIPersonality = 'rush'
             sessionInfo.teamInfo[index].Faction = GetRandomFaction()
             sessionInfo.teamInfo[index].PlayerName = GetRandomName(sessionInfo.teamInfo[index].Faction, sessionInfo.teamInfo[index].AIPersonality)
