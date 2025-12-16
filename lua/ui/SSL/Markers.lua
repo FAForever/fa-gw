@@ -189,14 +189,16 @@ SSLOverlay = Class(Group)
     UpdateMarkers = function(self, data)
         local markers = self._markers
         for strArmy, pos in data do
-            if IsDestroyed(markers[strArmy]) then
-                local marker = SSLMarker(self, self:GetParent())
+            local marker = markers[strArmy]
+            if IsDestroyed(marker) then
+                marker = SSLMarker(self, self:GetParent())
                 marker:InitLayout()
                 marker:SetArmyData(GetArmy(strArmy))
                 markers[strArmy] = marker
-            else
-                markers[strArmy].pos = { pos[1], pos[2], pos[3] }
             end
+            marker.pos[1] = pos[1]
+            marker.pos[2] = pos[2]
+            marker.pos[3] = pos[3]
         end
     end,
 
