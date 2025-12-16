@@ -93,6 +93,22 @@ SSLMarker = Class(Bitmap)
         local pos = self.worldView:Project(self.pos)
         self.PosX:Set(pos.x)
         self.PosY:Set(pos.y)
+    end,
+
+    ---@param self SSL.Marker
+    OnDestroy = function(self)
+        self.PosX:Destroy()
+        self.PosX = nil
+        self.PosY:Destroy()
+        self.PosY = nil
+
+        self._nickname = nil
+        self._faction = nil
+        self._separator = nil
+        self._color = nil
+
+        self.worldView = nil
+        self.pos = nil
     end
 }
 
