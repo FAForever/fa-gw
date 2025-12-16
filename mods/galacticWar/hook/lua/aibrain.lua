@@ -3,6 +3,7 @@ local AbilityDefinition = import('/lua/abilitydefinition.lua').abilities
 ---@type AIBrain
 local oldAIBrain = AIBrain ---@diagnostic disable-line: undefined-global
 local oldOnCreateHuman = oldAIBrain.OnCreateHuman
+local oldOnCreateAI = oldAIBrain.OnCreateAI
 
 ---@class GwAIBrain: AIBrain
 ---@field SpecialAbilities table GW Addition
@@ -22,76 +23,20 @@ AIBrain = Class(oldAIBrain) {
     ---@param self GwAIBrain
     ---@param planName any
     OnCreateAI = function(self, planName)
-        self:CreateBrainShared(planName)
+        oldOnCreateAI(self, planName)
 
         self.SpecialAbilities = {}
         self.SpecialAbilityUnits = {}
 
-        --LOG('*AI DEBUG: AI planName = ', repr(planName))
-        --LOG('*AI DEBUG: SCENARIO AI PLAN LIST = ', repr(aiScenarioPlans))
-        local civilian = false
-        for name,data in ScenarioInfo.ArmySetup do
+        self.Support = false
+        for name, data in ScenarioInfo.ArmySetup do
             if name == self.Name then
-                civilian = data.Civilian
                 if data.Support then -- GW Addition
                     self.Support = data.Support
                 end
                 break
             end
         end
-        if not civilian and not self.Support then -- GW Addition: and not self.Support
-            local per = ScenarioInfo.ArmySetup[self.Name].AIPersonality
-
-            -- Flag this brain as a possible brain to have skirmish systems enabled on
-            self.SkirmishSystems = true
-
-            local cheatPos = string.find(per, 'cheat')
-            if cheatPos then
-                AIUtils.SetupCheat(self, true)
-                ScenarioInfo.ArmySetup[self.Name].AIPersonality = string.sub(per, 1, cheatPos - 1)
-            end
-
-            LOG('* OnCreateAI: AIPersonality: ('..per..')')
-            if string.find(per, 'sorian') then
-                self.Sorian = true
-            end
-            if string.find(per, 'uveso') then
-                self.Uveso = true
-            end
-            if string.find(per, 'dilli') then
-                self.Dilli = true
-            end
-            if DiskGetFileInfo('/lua/AI/altaiutilities.lua') then
-                self.Duncan = true
-            end
-
-            self.CurrentPlan = self.AIPlansList[self:GetFactionIndex()][1]
-            self.EvaluateThread = self:ForkThread(self.EvaluateAIThread)
-            self.ExecuteThread = self:ForkThread(self.ExecuteAIThread)
-
-            self.PlatoonNameCounter = {}
-            self.PlatoonNameCounter['AttackForce'] = 0
-            self.BaseTemplates = {}
-            self.RepeatExecution = true
-            self:InitializeEconomyState()
-            self.IntelData = {
-                ScoutCounter = 0,
-            }
-
-            -- Flag enemy starting locations with threat?
-            if ScenarioInfo.type == 'skirmish' then
-                if self.Sorian then
-                    -- Gives the initial threat a type so initial land platoons will actually attack it.
-                    self:AddInitialEnemyThreatSorian(200, 0.005, 'Economy')
-                else
-                    self:AddInitialEnemyThreat(200, 0.005)
-                end
-            end
-        end
-        self.UnitBuiltTriggerList = {}
-        self.FactoryAssistList = {}
-        self.DelayEqualBuildPlattons = {}
-        self.BrainType = 'AI'
     end,
 
     ---@param self GwAIBrain
@@ -139,7 +84,7 @@ AIBrain = Class(oldAIBrain) {
     ---@param groupId integer
     ReinforcementsCalled = function(self, group, groupId)
         DisableSpecialAbility(self:GetArmyIndex(), 'CallReinforcement_' .. group)
-        table.insert(Sync.ReinforcementCalled, {self:GetArmyIndex(), groupId })
+        table.insert(Sync.ReinforcementCalled, { self:GetArmyIndex(), groupId })
     end,
 
     ---@param self GwAIBrain
@@ -240,7 +185,7 @@ AIBrain = Class(oldAIBrain) {
     ---@param type any
     ---@return unknown
     GetSpecialAbilityUnitIds = function(self, type)
-        self:GetSpecialAbilityUnits(type)  -- only for cleaning up the table, not interested in the results of this call
+        self:GetSpecialAbilityUnits(type) -- only for cleaning up the table, not interested in the results of this call
         return self.SpecialAbilityUnits[type]
     end,
 
