@@ -109,6 +109,7 @@ SSLMarker = Class(Bitmap)
 
         self.worldView = nil
         self.pos = nil
+        Bitmap.OnDestroy(self)
     end
 }
 
