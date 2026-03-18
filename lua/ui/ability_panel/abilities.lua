@@ -147,12 +147,15 @@ function CreateOrderButtonGrid()
     controls.orderButtonGrid:DeleteAll()
 end
 
+-- First slot is reserved for the recall button
+local groupSpot = 2
+
 -- Add Reinforcement
 function AddReinforcements(list)
     ---@type ReinforcementTransportGroup
     local List = list.List
-    local delay = List.delay
-    AbilityName = 'CallReinforcement_' .. List.group
+    local delay = List.Delay
+    AbilityName = 'CallReinforcement_' .. List.ID
 
     local AddAbility = true
     for k,v in availableOrders do
@@ -163,7 +166,18 @@ function AddReinforcements(list)
 
     if AddAbility then
         table.insert(availableOrders, AbilityName)
-        defaultOrdersTable[AbilityName] = {Name=AbilityName, bitmapId="deploy", enabled=true, helpText="deploy", preferredSlot=List.group+1, callBack = "Deploy", index = List.group, ExtraInfo={CoolDownTime = delay}}
+        defaultOrdersTable[AbilityName] = {
+            Name = AbilityName,
+            bitmapId = "deploy",
+            enabled = true,
+            helpText = "deploy",
+            preferredSlot = groupSpot,
+            callBack = "Deploy",
+            ID = List.ID,
+            ExtraInfo = {
+                CoolDownTime = delay
+            }
+        }
         defaultOrdersTable[AbilityName].behavior = AbilityButtonBehavior
         defaultOrdersTable[AbilityName].behaviordoubleclick = AbilityButtonBehaviorDoubleClick
         ButtonParams[AbilityName] = { CoolDownTime = true, CurrCoolDownTime = delay, CoolDownEnabled = false, CoolDownTimerValue = delay }
@@ -662,11 +676,10 @@ function AbilityButtonBehavior(self, modifiers)
         CM.EndCommandMode(true)
     else
         if self._data.callBack then
-            LOG(repr(self._data))
-            if self._data.index then
-                SimCallback({Func = self._data.callBack, Args = { Index=self._data.index, From=GetFocusArmy()}})
+            if self._data.ID then
+                SimCallback({Func = self._data.callBack, Args = { From = GetFocusArmy(), ID = self._data.ID}})
             else
-                SimCallback({Func = self._data.callBack, Args = { From=GetFocusArmy()}})
+                SimCallback({Func = self._data.callBack, Args = { From = GetFocusArmy()}})
             end
         else
             local modeData = {
@@ -701,8 +714,8 @@ function AbilityButtonBehaviorDoubleClick(self, modifiers)
         CM.EndCommandMode(true)
     else
         if self._data.callBack then
-            if self._data.index then
-                SimCallback({Func = self._data.callBack, Args = { Index=self._data.index, From=GetFocusArmy()}})
+            if self._data.ID then
+                SimCallback({Func = self._data.callBack, Args = { Index=self._data.ID, From=GetFocusArmy()}})
             else
                 SimCallback({Func = self._data.callBack, Args = { From=GetFocusArmy()}})
             end

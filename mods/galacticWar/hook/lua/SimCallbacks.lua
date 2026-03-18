@@ -1,5 +1,6 @@
 -- For galactic War.
 do
+	local Reinforcements = import("/lua/gwReinforcements.lua")
 	--- List of callbacks that is being populated throughout this file
 	---@type table<string, fun(data: table, units?: Unit[])>
 	local Callbacks = Callbacks
@@ -24,7 +25,8 @@ do
 					PrintText(LOC('<LOC reinforcements0002>The beacon is not complete!'), 20, nil, 15, 'center')
 				end
 			else
-				unit:Deploy(data.Index)
+				Reinforcements.CallTransportGroup(aiBrain, unit, data.ID)
+				break
 			end
 		end
 	end

@@ -68,14 +68,13 @@ AIBrain = Class(oldAIBrain) {
     AddReinforcements = function(self, group)
         local army = self:GetArmyIndex()
         AddReinforcementList(army, group)
-        StartAbilityCoolDown(army, 'CallReinforcement_' .. group.group)
+        StartAbilityCoolDown(army, 'CallReinforcement_' .. group.ID)
     end,
 
     ---@param self GwAIBrain
-    ---@param group integer
     ---@param groupId integer
-    ReinforcementsCalled = function(self, group, groupId)
-        DisableSpecialAbility(self:GetArmyIndex(), 'CallReinforcement_' .. group)
+    ReinforcementsCalled = function(self, groupId)
+        DisableSpecialAbility(self:GetArmyIndex(), 'CallReinforcement_' .. groupId)
         table.insert(Sync.ReinforcementCalled, { self:GetArmyIndex(), groupId })
     end,
 
